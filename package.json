@@ -1,0 +1,38 @@
+{
+  "name": "@realmsplus/protocol",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Serial-V, NoVa Gh0ul",
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/uuid-1345": "^0.99.25",
+    "colors": "^1.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "prismarine-auth": "^2.6.0",
+    "prismarine-nbt": "^2.7.0",
+    "protodef": "^1.18.0",
+    "snappy": "^7.2.2",
+    "uuid-1345": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3",
+    "@types/node": "^22.13.5",
+    "raknet-native": "^1.2.3",
+    "typescript": "^5.4.5"
+  },
+  "turbo": {
+    "pipeline": {
+      "build": {
+        "outputs": [
+          "dist/**"
+        ]
+      }
+    }
+  }
+}
