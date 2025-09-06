@@ -6,6 +6,7 @@ import { EmotePacket } from "./packets/emote";
 import { PlayerlistPacket } from "./packets/playerlist";
 import { PlayerSkinPacket } from "./packets/playerSkin";
 import { TextPacket } from "./packets/text";
+import { TickSyncPacket } from "./packets/tick_sync";
 
 //Consts
 
@@ -25,6 +26,7 @@ export interface ClientOptions {
     host?: string;
     port?: number;
     realmId?: number;
+    networkId?: bigint;
     authflow?: Authflow;
     auth?: {
         XSTSToken: string;
@@ -43,7 +45,10 @@ export interface ClientOptions {
     viewDistance?: number;
     skipPing?: boolean;
 
-    packets: string[];
+    packets?: string[];
+
+    //Nethernet
+    transport?: string;
 }
 
 //Packets
@@ -52,6 +57,7 @@ export interface Events {
     session: () => void;
     start_game: () => void;
     connect_allowed: () => void;
+    tick_sync: (packet: TickSyncPacket) => void;
 
     //Packets
 
@@ -64,7 +70,3 @@ export interface Events {
     disconnect: () => void;
     emote: (packet: EmotePacket) => void;
 }
-
-export interface NethernetOptions {
-    networkId: string;
-};

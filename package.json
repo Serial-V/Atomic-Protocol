@@ -13,16 +13,22 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/uuid-1345": "^0.99.25",
     "colors": "^1.4.0",
+    "dgram": "^1.0.1",
     "jsonwebtoken": "^9.0.2",
-    "prismarine-auth": "^2.6.0",
+    "node-nethernet": "github:LucienHH/node-nethernet#protocol",
+    "prismarine-auth": "github:LucienHH/prismarine-auth#playfab",
     "prismarine-nbt": "^2.7.0",
     "protodef": "^1.18.0",
+    "sdp-transform": "^2.15.0",
     "snappy": "^7.2.2",
-    "uuid-1345": "^1.0.2"
+    "uuid-1345": "^1.0.2",
+    "ws": "^8.18.3",
+    "xbox-rta": "^2.1.0"
   },
   "devDependencies": {
     "@types/events": "^3.0.3",
     "@types/node": "^22.13.5",
+    "@types/sdp-transform": "^2.15.0",
     "raknet-native": "^1.2.3",
     "typescript": "^5.4.5"
   },

@@ -5,7 +5,7 @@ import { config } from "./config/config";
 import { RaknetClient } from "./rak";
 import { ClientOptions } from "./types";
 import { convert } from "./utils/convert";
-import sleep from "./utils/utilities";
+import { sleep } from "./utils/utilities";
 
 export const createClient = (options: ClientOptions) => {
     assert(options);
@@ -50,6 +50,24 @@ function connect(client: Client) {
         sleep(500).then(() => {
             client.queue('request_chunk_radius', { chunk_radius: 1 });
         });
+    });
+
+    // Added KeepAllive interval
+    let keepAlive: NodeJS.Timeout;
+    client.once("spawn", () => {
+        keepAlive = setInterval(() => {
+            client.queue("tick_sync", { request_time: client.tick, response_time: 0n });
+            client.tick += BigInt(10);
+        }, 10 * 10);
+
+        client.on("tick_sync", async (packet) => {
+            client.emit("heartbeat", packet.response_time);
+            client.tick = packet.response_time;
+        });
+    });
+
+    client.once("close", () => {
+        clearInterval(keepAlive);
     });
 }
 

@@ -30,5 +30,6 @@ export const config = {
 export const defaultOptions = {
     version: config.minecraftVersion,
     autoInitPlayer: true,
-    connectTimeout: 9000
+    connectTimeout: 9000,
+    packets: []
 };

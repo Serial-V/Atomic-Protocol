@@ -102,7 +102,6 @@ export class Connection extends EventEmitter {
     };
 
     onEncryptedPacket = (buf: Buffer) => {
-        //@ts-ignore
         const packet = this.batchHeader ? Buffer.concat([Buffer.from([this.batchHeader]), buf]) : buf;
         this.sendPackets(packet, false);
     };
@@ -116,18 +115,19 @@ export class Connection extends EventEmitter {
     };
 
     handle(buffer: Buffer) {
-        //@ts-ignore
         if (!this.batchHeader || buffer[0] === this.batchHeader) {
             if (this.encryptionEnabled) this.decrypt(buffer.slice(1));
             else {
                 const packets = Framer.decode(this, buffer);
-                packets.forEach((packet) => {
+                for (let packet of packets) {
                     //@ts-ignore
                     this.readPacket(packet);
-                });
+                }
             };
         } else {
-            throw new Error("bad packet header " + buffer[0]);
+            this.emit("error", new Error(`bad packet header` + buffer[0]));
+            (this as any).close?.();
+            return;
         };
     };
 };

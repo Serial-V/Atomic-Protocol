@@ -19,6 +19,7 @@ export class Client extends Connection {
     public serializer!: Serializer;
     public startGameData: any;
     public clientRuntimeId: any;
+    public tick = 0n;
 
     public connectTimeout!: NodeJS.Timeout;
     public viewDistance = 10;
@@ -45,7 +46,7 @@ export class Client extends Connection {
 
     public connect() {
         if (!this.connection) throw new Error('Connect not currently allowed');
-        this.on('session', this._connect);
+        this.once('session', this._connect);
 
         authenticate(this, this.options);
 
@@ -74,7 +75,7 @@ export class Client extends Connection {
     };
 
     public init() {
-        if (!this.options.host || !this.options.port == null) throw Error('invalid host/port');
+        if (!this.options.host || this.options.port == null) throw Error('invalid host/port');
         if (this.options.protocolVersion !== config.protocol) throw Error(`unsupported protocol version: ${this.options.protocolVersion}`);
         this.serializer = createSerializer();
         this.deserializer = createDeserializer();
@@ -147,7 +148,7 @@ export class Client extends Connection {
             case "resource_pack_stack": this.emit("resource_pack_stack", des.data.params); break;
         }
 
-        if (this.options.packets.includes(des.data.name)) {
+        if ((this.options.packets ?? [])?.includes(des.data.name)) {
             this.emit(des.data.name, des.data.params);
         }
     };

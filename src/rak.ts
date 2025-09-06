@@ -62,16 +62,6 @@ export class RaknetClient extends EventEmitter {
         this.raknet.connect();
     };
 
-    /**
-     * Closes the Raknet connection.
-     * 
-     * This sets the `connected` flag to false and schedules the closing of the 
-     * Raknet client after 40 milliseconds. Any errors during the close operation
-     * are silently caught.
-     * 
-     * FATAL - free(): invalid pointer error caused by Raknet occasionally.
-     * https://github.com/PrismarineJS/bedrock-protocol/issues/591
-     */
     close() {
         try {
             this.connected = false;

@@ -64,7 +64,13 @@ export default class Framer {
 
         //@ts-ignore
         if (client.compressionReady) {
-            decompressed = Framer.decompress(buffer[0], buffer.slice(1));
+            try {
+                decompressed = Framer.decompress(buffer[0], buffer.slice(1));
+            } catch (e) {
+                //Fallback
+                client.emit?.("error", e as Error);
+                return [];
+            }
         } else {
             try {
                 decompressed = Framer.decompress(client.compressionAlgorithm, buffer);
@@ -119,11 +125,20 @@ export default class Framer {
     }
 
     static getPackets(buffer: Buffer) {
-        const packets = [];
+        const maxPacket = 2 * 1024 * 1024;
+        const packets: Buffer[] = [];
         let offset = 0;
 
         while (offset < buffer.byteLength) {
             const { value, size } = readVarInt(buffer, offset);
+            if (value < 0 || value > maxPacket) {
+                throw new Error(`Packet too large/invalid (${value} bytes)`);
+            }
+
+            if (offset + size + value > buffer.byteLength) {
+                throw new Error("Truncated packet payload");
+            }
+
             const dec = Buffer.allocUnsafe(value);
             offset += size;
             offset += buffer.copy(dec, 0, offset, offset + value);

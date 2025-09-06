@@ -5,7 +5,6 @@ export const createDecryptor = (client: any, iv: Buffer) => {
     const decipher = createDecipher(client.secretKeyBytes, iv);
 
     client.receiveCounter = client.receiveCounter || 0n;
-
     decipher.on('data', verify);
 
     return (blob: Buffer) => {
@@ -26,15 +25,33 @@ export const createDecryptor = (client: any, iv: Buffer) => {
         }
 
         let buffer;
-        switch (packet[0]) {
-            case 0:
-                buffer = inflateRawSync(packet.slice(1), { chunkSize: 512000 });
-                break;
-            case 255:
-                buffer = packet.slice(1);
-                break;
-            default:
-                client.emit('error', Error(`Unsupported compressor: ${packet[0]}`));
+        try {
+            switch (packet[0]) {
+                case 0:
+                    try {
+                        buffer = inflateRawSync(packet.slice(1), { chunkSize: 512000 });
+                        break;
+                    } catch (e) {
+                        client.emit('error', e as Error);
+                        client.disconnect('disconnectionScreen.badPacket');
+                        return;
+                    }
+                case 255:
+                    buffer = packet.slice(1);
+                    break;
+                default:
+                    try {
+                        client.emit('error', Error(`Unsupported compressor: ${packet[0]}`));
+                    } catch (e) {
+                        client.emit('error', e as Error);
+                        client.disconnect('disconnectionScreen.badPacket');
+                        return;
+                    }
+            }
+        } catch (e) {
+            client.emit("error", e as Error);
+            client.disconnect("disconnectionScreen.badPacket");
+            return;
         }
 
         client.onDecryptedPacket(buffer);
@@ -53,7 +70,13 @@ export const createEncryptor = (client: any, iv: Buffer) => {
     };
 
     function process(chunk: Buffer) {
-        const compressed = deflateRawSync(chunk, { level: client.compressionLevel });
+        let compressed: Buffer;
+        try {
+            compressed = deflateRawSync(chunk, { level: client.compressionLevel });
+        } catch (e) {
+            client.emit('error', e as Error);
+            return;
+        }
 
         const buffer = Buffer.concat([Buffer.from([0]), compressed]);
 
