@@ -92,3 +92,62 @@ function postAuthenticate(client: any, profile: Profile, chains: string) {
     client.accessToken = chains;
     client.emit('session');
 }
+
+export async function OptIn(realm: any, authflow: any) {
+    let token = await authflow.getXboxToken("https://pocket.realms.minecraft.net/");
+    let attempt = 0;
+    let refreshedOn401 = false;
+
+    while (true) {
+        attempt++;
+
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 10 * 1000);
+        let resp: Response;
+        try {
+            resp = await fetch(`https://bedrock.frontendlegacy.realms.minecraft-services.net/worlds/${realm.id}/stories/settings`, {
+                method: "POST",
+                headers: {
+                    ...config.realmHeaders,
+                    Authorization: `XBL3.0 x=${token.userHash};${token.XSTSToken}`,
+                },
+                body: JSON.stringify({
+                    autostories: true,
+                    coordinates: false,
+                    notifications: false,
+                    optInRequired: true,
+                    playerOptIn: "OPT_IN",
+                    realmOptIn: "OPT_IN",
+                    timeline: true,
+                }),
+                signal: ctrl.signal
+            });
+        } catch (err: any) {
+            clearTimeout(to);
+            if (err?.name === "AbortError" && attempt <= 2 + 1) {
+                await new Promise(r => setTimeout(r, 250 + (attempt - 1) * (attempt - 1) * 250));
+                continue;
+            }
+            throw err;
+        } finally {
+            clearTimeout(to);
+        }
+
+        if (resp.status === 204) return { ok: true, status: 204 };
+
+        if (resp.status === 401 && !refreshedOn401) {
+            refreshedOn401 = true;
+            token = await authflow.getXboxToken("https://pocket.realms.minecraft.net/");
+            continue;
+        }
+
+        if ((resp.status === 429 || (resp.status >= 500 && resp.status <= 599)) && attempt <= 2 + 1) {
+            await new Promise(r => setTimeout(r, 250 + (attempt - 1) * (attempt - 1) * 250));
+            continue;
+        }
+
+        let text: string | undefined;
+        try { text = await resp.text(); } catch { }
+        return { ok: false, status: resp.status, body: text };
+    }
+}
