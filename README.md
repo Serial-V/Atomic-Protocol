@@ -1,4 +1,4 @@
-# 🌟 Atomic Protocol
+# Atomic Protocol
 
 > Documentation coming soon
 
@@ -6,6 +6,7 @@ Atomic Protocol is a modern, efficient, and fully TypeScript-rewritten version o
 [PrismarineJS/bedrock-protocol](https://github.com/PrismarineJS/bedrock-protocol).  
 It’s built with performance and maintainability in mind.
 
+- ✅ Minecraft Version: `1.21.100`
 - ✅ Written in TypeScript  
 - ✅ Strongly-typed packet definitions
 - ✅ Clean API for client creation  
@@ -61,11 +62,11 @@ client.on("text", (packet) => {
 
 ## 🗺️ Roadmap
 
-- [ ] Expand client API surface with higher-level abstractions  
-- [ ] Add automated tests for all generated packet types  
-- [ ] Provide CLI tool to regenerate types from protocol specs  
-- [ ] Improve documentation with full packet reference  
-- [ ] Optional proxy/server implementation (stretch goal)  
+- [ ] Nethernet Support
+- [ ] API & FAQ Documentation
+- [ ] **Future Enhancements**
+  - Consider adding proxy support (client ↔ server pass-through).
+  - Explore server implementation (stretch goal).
 
 ---
 

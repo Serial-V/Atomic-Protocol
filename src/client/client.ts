@@ -100,8 +100,7 @@ export class Client extends Connection {
             this.batchHeader = null;
             this.disableEncryption = true;
         } else if (this.options.transport === 'raknet') {
-            const { RakClient } = initRaknet("raknet-native");
-            this.connection = new RakClient({ useWorkers: true, host, port }, this);
+            this.connection = new RaknetClient({ useWorkers: true, host, port });
             this.batchHeader = 0xfe;
             this.disableEncryption = false;
         }
@@ -157,7 +156,7 @@ export class Client extends Connection {
                 break;
             default:
                 if (this.status !== clientStatus.Initializing && this.status !== clientStatus.Initialized) {
-                    console.log(`Can't accept ${des.data.name}, client not authenticated yet : ${this.status}`);
+                    console.error(`Can't accept ${des.data.name}, client not authenticated yet : ${this.status}`);
                     break;
                 }
         }
@@ -211,7 +210,7 @@ export class Client extends Connection {
             encodedLoginPayload = JSON.stringify({
                 AuthenticationType: authType,
                 Token: '',
-                Certificate: JSON.stringify({ chain }) // Deprecated legacy certificate chain
+                Certificate: JSON.stringify({ chain })
             });
 
             //@ts-ignore

@@ -246,5 +246,4 @@ function str(fn: Function): string {
     return fn.toString() + ")();(()=>{}";
 }
 
-
-export { Read, SizeOf, Write };
+export default { Read, SizeOf, Write };

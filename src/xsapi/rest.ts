@@ -1,3 +1,4 @@
+import { config } from "../config/config";
 
 export const SessionConfig = {
     MinecraftTitleID: '896928775',
@@ -191,7 +192,7 @@ async function checkStatus(res: Response) {
         return res.text().then(JSON.parse);
     } else {
         const resp = await res.text();
-        console.debug('Request fail', resp);
+        if (config.debug) console.log("<DEBUG>".gray + 'Request fail', resp);
         throw Error(`${res.status} ${res.statusText} ${resp}`);
     }
 }

@@ -51,24 +51,6 @@ function connect(client: Client) {
             client.queue('request_chunk_radius', { chunk_radius: 1 });
         });
     });
-
-    // Added KeepAllive interval
-    let keepAlive: NodeJS.Timeout;
-    client.once("spawn", () => {
-        keepAlive = setInterval(() => {
-            client.queue("tick_sync", { request_time: client.tick, response_time: 0n });
-            client.tick += BigInt(10);
-        }, 10 * 10);
-
-        client.on("tick_sync", async (packet) => {
-            client.emit("heartbeat", packet.response_time);
-            client.tick = packet.response_time;
-        });
-    });
-
-    client.once("close", () => {
-        clearInterval(keepAlive);
-    });
 }
 
 async function ping(host: string, port: number) {

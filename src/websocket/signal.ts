@@ -1,6 +1,7 @@
 import { SignalStructure } from "node-nethernet";
 import { EventEmitter, once } from "node:events";
 import { WebSocket } from "ws";
+import { config } from "../config/config";
 
 const MessageType = {
     RequestPing: 0,
@@ -37,7 +38,7 @@ export class NethernetSignal extends EventEmitter {
     }
 
     async destroy(resume = false) {
-        console.debug('Disconnecting from Signal');
+        if (config.debug) console.log("<DEBUG>".gray + 'Disconnecting from Signal');
 
         if (this.pingInterval) {
             clearInterval(this.pingInterval);
@@ -75,11 +76,11 @@ export class NethernetSignal extends EventEmitter {
     async init() {
         const xbl = await this.authflow.getMinecraftBedrockServicesToken({ version: this.version });
 
-        console.debug('Fetched XBL Token', xbl);
+        if (config.debug) console.log("<DEBUG>".gray + 'Fetched XBL Token', xbl);
 
         const address = `wss://signal.franchise.minecraft-services.net/ws/v1.0/signaling/${this.networkId}`;
 
-        console.debug('Connecting to Signal', address);
+        if (config.debug) console.log("<DEBUG>".gray + 'Connecting to Signal', address);
 
         const ws = new WebSocket(address, {
             headers: { Authorization: xbl.mcToken }
@@ -111,18 +112,18 @@ export class NethernetSignal extends EventEmitter {
     }
 
     onOpen() {
-        console.debug('Connected to Signal');
+        if (config.debug) console.log("<DEBUG>".gray + 'Connected to Signal');
     }
 
     onError(err: any) {
-        console.debug('Signal Error', err);
+        if (config.debug) console.log("<DEBUG>".gray + 'Signal Error', err);
     }
 
     onClose(code: number, reason: string) {
-        console.debug(`Signal Disconnected with code ${code} and reason ${reason}`);
+        if (config.debug) console.log("<DEBUG>".gray + `Signal Disconnected with code ${code} and reason ${reason}`);
 
         if (code === 1006) {
-            console.debug('Signal Connection Closed Unexpectedly');
+            if (config.debug) console.log("<DEBUG>".gray + 'Signal Connection Closed Unexpectedly');
 
             if (this.retryCount < 5) {
                 this.retryCount++;
@@ -135,16 +136,16 @@ export class NethernetSignal extends EventEmitter {
     }
 
     onMessage(res: Response) {
-        if (!(typeof res === 'string')) return console.debug('Received non-string message', res);
+        if (!(typeof res === 'string')) return console.log("<DEBUG>".gray + 'Received non-string message', res);
 
         const message = JSON.parse(res);
 
-        console.debug('Recieved message', message);
+        if (config.debug) console.log("<DEBUG>".gray + 'Recieved message', message);
 
         switch (message.Type) {
             case MessageType.Credentials: {
                 if (message.From !== 'Server') {
-                    console.debug('Received credentials from non-Server', 'message', message);
+                    if (config.debug) console.log("<DEBUG>".gray + 'Received credentials from non-Server', 'message', message);
                     return;
                 }
 
@@ -163,7 +164,7 @@ export class NethernetSignal extends EventEmitter {
                 break;
             }
             case MessageType.RequestPing: {
-                console.debug('Signal Pinged');
+                if (config.debug) console.log("<DEBUG>".gray + 'Signal Pinged');
             }
         }
     }
@@ -173,7 +174,7 @@ export class NethernetSignal extends EventEmitter {
 
         const message = JSON.stringify({ Type: MessageType.Signal, To: signal.networkId, Message: signal.toString() });
 
-        console.debug('Sending Signal', message);
+        if (config.debug) console.log("<DEBUG>".gray + 'Sending Signal', message);
 
         this.ws.send(message);
     }

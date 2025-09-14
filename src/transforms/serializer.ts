@@ -1,5 +1,7 @@
 import { Compiler, FullPacketParser, Serializer } from "protodef";
 
+import protocol from "../config/protocol.json";
+
 class Parser extends FullPacketParser {
     verify(deserialized: any, serializer: Serializer) {
         const { name, params } = deserialized.data;
@@ -19,8 +21,6 @@ class CustomCompiler extends Compiler.ProtoDefCompiler {
 }
 
 export const createSerializer = () => {
-    const protocol = require("../config/protocol.json") as { types: any; };
-
     const compiler = new CustomCompiler();
     compiler.addTypesToCompilePublic(protocol.types);
     compiler.addTypes(require("../datatypes/compiler"));

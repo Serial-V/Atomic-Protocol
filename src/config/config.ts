@@ -15,7 +15,7 @@ export const config = {
         "Cache-Control": "no-cache",
         Charset: "utf-8",
         "Content-Type": "application/json",
-        "Client-Version": "1.21.80",
+        "Client-Version": "1.21.103",
         "User-Agent": "MCPE/UWP",
         "Accept-Language": "en-US",
         "Accept-Encoding": "gzip, deflate, br",

@@ -13,7 +13,7 @@ export default class Framer {
 
     constructor(client: Connection) {
         this.packets = [];
-        this.batchHeader = client.batchHeader;
+        this.batchHeader = client.batchHeader!;
         this.compressor = client.compressionAlgorithm || 'none';
         this.compressionLevel = client.compressionLevel;
         this.compressionThreshold = client.compressionThreshold;
@@ -23,7 +23,7 @@ export default class Framer {
 
     reset(client: Connection) {
         this.packets = [];
-        this.batchHeader = client.batchHeader;
+        this.batchHeader = client.batchHeader!;
         this.compressor = client.compressionAlgorithm || 'none';
         this.compressionLevel = client.compressionLevel;
         this.compressionThreshold = client.compressionThreshold;
