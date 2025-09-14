@@ -1,11 +1,6 @@
 import { EventEmitter } from 'events';
 import { Client, PacketPriority, PacketReliability } from 'raknet-native';
 
-interface Encapsulated {
-    buffer: Buffer;
-    address: string;
-}
-
 export class RaknetClient extends EventEmitter {
     connected: boolean;
     onConnected: () => void;

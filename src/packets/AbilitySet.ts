@@ -1,0 +1,22 @@
+
+export type AbilitySet = {  build: boolean;
+  mine: boolean;
+  doors_and_switches: boolean;
+  open_containers: boolean;
+  attack_players: boolean;
+  attack_mobs: boolean;
+  operator_commands: boolean;
+  teleport: boolean;
+  invulnerable: boolean;
+  flying: boolean;
+  may_fly: boolean;
+  instant_build: boolean;
+  lightning: boolean;
+  fly_speed: boolean;
+  walk_speed: boolean;
+  muted: boolean;
+  world_builder: boolean;
+  no_clip: boolean;
+  privileged_builder: boolean;
+  vertical_fly_speed: boolean;
+  count: boolean;};

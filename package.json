@@ -29,6 +29,8 @@
     "@types/events": "^3.0.3",
     "@types/node": "^22.13.5",
     "@types/sdp-transform": "^2.15.0",
+    "@types/ws": "^8.18.1",
+    "prettier": "^3.6.2",
     "raknet-native": "^1.2.3",
     "typescript": "^5.4.5"
   },

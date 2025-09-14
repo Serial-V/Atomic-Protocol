@@ -1,0 +1,2 @@
+
+export type Bitflags = any;

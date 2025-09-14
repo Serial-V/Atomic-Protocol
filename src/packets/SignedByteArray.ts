@@ -1,0 +1,2 @@
+
+export type SignedByteArray = any;

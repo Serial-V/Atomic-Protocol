@@ -1,0 +1,2 @@
+
+export type EnumSizeBasedOnValuesLen = any;

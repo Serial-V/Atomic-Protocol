@@ -1,17 +1,19 @@
 import 'colors';
 import { FullPacketParser, Serializer } from "protodef";
 import { config } from "../config/config";
+import { Events } from '../Events';
 import { keyExchange } from "../handshake/keyExchange";
 import login from "../handshake/login";
 import loginVerify from "../handshake/loginVerify";
+import { NethernetClient } from '../nethernet';
 import { RaknetClient } from "../rak";
 import { createDeserializer, createSerializer } from "../transforms/serializer";
-import { ClientOptions, clientStatus, Events } from "../types";
+import { ClientOptions, clientStatus } from "../types";
 import { authenticate, AuthenticationType } from "./auth";
 import { Connection } from "./connection";
 
 export class Client extends Connection {
-    connection!: RaknetClient;
+    connection!: RaknetClient | NethernetClient;
 
     public features: any;
     public options: ClientOptions;
@@ -27,8 +29,12 @@ export class Client extends Connection {
     public clientIdentityChain!: string;
     public clientUserChain!: string;
 
-    on<K extends keyof Events>(event: K, listener: Events[K]) {
+    override on<K extends keyof Events>(event: K, listener: Events[K]): this {
         return super.on(event, listener);
+    }
+
+    override once<K extends keyof Events>(event: K, listener: Events[K]): this {
+        return super.once(event, listener);
     }
 
     constructor(options: ClientOptions) {
@@ -84,7 +90,21 @@ export class Client extends Connection {
         login(this, this.options);
         loginVerify(this);
 
-        this.connection = new RaknetClient({ host: this.options.host, port: Number(this.options.port) });
+        const host = this.options.host;
+        const port = this.options.port;
+
+        const networkId = this.options.networkId;
+
+        if (this.options.transport === 'nethernet') {
+            this.connection = new NethernetClient({ networkId });
+            this.batchHeader = null;
+            this.disableEncryption = true;
+        } else if (this.options.transport === 'raknet') {
+            const { RakClient } = initRaknet("raknet-native");
+            this.connection = new RakClient({ useWorkers: true, host, port }, this);
+            this.batchHeader = 0xfe;
+            this.disableEncryption = false;
+        }
 
         this.emit('connect_allowed');
     };
