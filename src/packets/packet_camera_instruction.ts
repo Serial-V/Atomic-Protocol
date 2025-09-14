@@ -1,10 +1,11 @@
 
+import type { EaseType } from "./EaseType";
 import type { Vec3f } from "./vec3f";
 import type { Vec2f } from "./vec2f";
 
 export interface CameraInstructionPacket {
   instruction_set: {  runtime_id: number;
-  ease_data: {  type: "Linear" | "Spring" | "InQuad" | "OutQuad" | "InOutQuad" | "InCubic" | "OutCubic" | "InOutCubic" | "InQuart" | "OutQuart" | "InOutQuart" | "InQuint" | "OutQuint" | "InOutQuint" | "InSine" | "OutSine" | "InOutSine" | "InExpo" | "OutExpo" | "InOutExpo" | "InCirc" | "OutCirc" | "InOutCirc" | "InBounce" | "OutBounce" | "InOutBounce" | "InBack" | "OutBack" | "InOutBack" | "InElastic" | "OutElastic" | "InOutElastic";
+  ease_data: {  type: EaseType;
   duration: number;} | null;
   position: Vec3f | null;
   rotation: Vec2f | null;
@@ -21,4 +22,8 @@ export interface CameraInstructionPacket {
   target: {  offset: Vec3f | null;
   entity_unique_id: number;} | null;
   remove_target: boolean | null;
+  fov: {  field_of_view: number;
+  ease_time: number;
+  ease_type: EaseType;
+  clear: boolean;} | null;
 }

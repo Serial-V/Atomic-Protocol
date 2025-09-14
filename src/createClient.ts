@@ -48,7 +48,7 @@ function connect(client: Client) {
         client.queue('client_cache_status', { enabled: false });
 
         sleep(500).then(() => {
-            client.queue('request_chunk_radius', { chunk_radius: 1 });
+            client.queue('request_chunk_radius', { chunk_radius: 1, max_radius: 10 });
         });
     });
 }

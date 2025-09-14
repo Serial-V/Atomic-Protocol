@@ -3,7 +3,7 @@ import type { BiomeChunkGeneration } from "./BiomeChunkGeneration";
 
 export interface BiomeDefinition {
   name_index: number;
-  biome_id: number | null;
+  biome_id: number;
   temperature: number;
   downfall: number;
   red_spore_density: number;

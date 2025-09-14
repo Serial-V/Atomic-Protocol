@@ -185,7 +185,7 @@ const packets = Object.keys(types).filter(k => k.startsWith("packet_"));
 const imports = packets
     .map(name => {
         const ifaceName = toPacketName(name);
-        return `import type { ${ifaceName} } from "./generated/${name}";`;
+        return `import type { ${ifaceName} } from "./packets/${name}";`;
     })
     .join("\n");
 

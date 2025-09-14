@@ -90,7 +90,7 @@ export class NethernetSignal extends EventEmitter {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                 this.ws.send(JSON.stringify({ Type: MessageType.RequestPing }));
             }
-        }, 5000);
+        }, 2000);
 
         ws.onopen = () => {
             this.onOpen();
@@ -163,9 +163,6 @@ export class NethernetSignal extends EventEmitter {
                 this.emit('signal', signal);
                 break;
             }
-            case MessageType.RequestPing: {
-                if (config.debug) console.log("<DEBUG>".gray + 'Signal Pinged');
-            }
         }
     }
 
@@ -182,15 +179,17 @@ export class NethernetSignal extends EventEmitter {
 
 function parseTurnServers(dataString: string) {
     const servers: any = [];
-
     const data = JSON.parse(dataString);
 
     if (!data.TurnAuthServers) return servers;
 
-    for (const server of data.TurnAuthServers) {
+    for (let i = 0; i < data.TurnAuthServers.length; i++) {
+        const server = data.TurnAuthServers[i];
+
         if (!server.Urls) continue;
 
-        for (const url of server.Urls) {
+        for (let j = 0; j < server.Urls.length; j++) {
+            const url = server.Urls[j];
             const match = url.match(/(stun|turn):([^:]+):(\d+)/);
             if (match) {
                 servers.push({

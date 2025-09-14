@@ -49,6 +49,10 @@ export interface ClientOptions {
 
     //Nethernet
     transport?: string;
+
+    username?: string;
+    profilesFolder?: string;
+    useSignalling?: boolean;
 }
 
 //Packets

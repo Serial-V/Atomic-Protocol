@@ -2,7 +2,7 @@
 export const config = {
     debug: false,
     protocol: 827,
-    minecraftVersion: "1.21.100",
+    minecraftVersion: "1.21.101",
     deviceModel: "ReclipsedTS",
     connectTimeout: 9000,
     autoInitPlayer: true,

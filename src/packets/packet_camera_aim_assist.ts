@@ -7,4 +7,5 @@ export interface CameraAimAssistPacket {
   distance: number;
   target_mode: "angle" | "distance";
   action: "set" | "clear";
+  show_debug_render: boolean;
 }

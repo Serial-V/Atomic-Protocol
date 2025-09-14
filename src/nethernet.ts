@@ -1,4 +1,4 @@
-import { Client } from "node-nethernet";
+import { Client, Connection } from "node-nethernet";
 
 export class NethernetClient {
     connected: boolean;
@@ -15,18 +15,18 @@ export class NethernetClient {
 
         this.nethernet = new Client(options.networkId);
 
-        this.nethernet.on('connected', (client) => {
+        this.nethernet.on('connected', (client: Connection) => {
             //@ts-ignore
             this.onConnected(client);
             this.connected = true;
         });
 
-        this.nethernet.on('disconnect', (reason) => {
+        this.nethernet.on('disconnect', (reason: any) => {
             this.onCloseConnection(reason);
             this.connected = false;
         });
 
-        this.nethernet.on('encapsulated', (data, address) => {
+        this.nethernet.on('encapsulated', (data: Buffer, address: BigInt) => {
             if (this.connected) {
                 this.onEncapsulated({ buffer: data }, address);
             }
@@ -44,7 +44,7 @@ export class NethernetClient {
     async ping(timeout = 10000) {
         this.nethernet.ping();
         return waitFor((done: any) => {
-            this.nethernet.once('pong', (ret) => { done(ret.data); });
+            this.nethernet.once('pong', (ret: any) => { done(ret.data); });
         }, timeout, () => {
             throw new Error('Ping timed out');
         });

@@ -66,7 +66,7 @@ export class SessionDirectory {
             joinability: Joinability.FriendsOfFriends,
             ...options,
             world: {
-                hostName: 'Bedrock Protocol Server',
+                hostName: 'Atomic Protocol Server',
                 name: 'bedrock-protocol',
                 version: '1.21.20',
                 memberCount: 0,

@@ -7,8 +7,8 @@ export interface CorrectPlayerMovePredictionPacket {
   prediction_type: "player" | "vehicle";
   position: Vec3f;
   delta: Vec3f;
-  vehicle_rotation: {  rotation: Vec2f;
-  angular_velocity: number | null;};
+  rotation: Vec2f;
+  angular_velocity: number | null;
   on_ground: boolean;
   tick: Varint64;
 }

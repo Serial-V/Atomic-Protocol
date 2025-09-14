@@ -89,5 +89,6 @@ export interface StartGamePacket {
   world_template_id: string;
   client_side_generation: boolean;
   block_network_ids_are_hashes: boolean;
+  tick_death_systems: boolean;
   server_controlled_sound: boolean;
 }

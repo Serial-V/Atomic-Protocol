@@ -16,7 +16,7 @@ export class Connection extends EventEmitter {
     compressionThreshold = 512;
     compressionHeader = 0;
     compressionLevel = 7;
-    framer = new Framer(this);
+    public framer = new Framer(this);
     decrypt: any;
     encrypt: any;
     #status = clientStatus.Disconnected;

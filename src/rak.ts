@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { Client, PacketPriority, PacketReliability } from 'raknet-native';
 
 export class RaknetClient extends EventEmitter {
