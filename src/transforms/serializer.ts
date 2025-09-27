@@ -23,7 +23,7 @@ class CustomCompiler extends Compiler.ProtoDefCompiler {
 export const createSerializer = () => {
     const compiler = new CustomCompiler();
     compiler.addTypesToCompilePublic(protocol.types);
-    compiler.addTypes(require("../datatypes/compiler"));
+    compiler.addTypes(require("../datatypes/compiler").default);
 
     const compiledProto = compiler.compileProtoDefSync();
     return new Serializer(compiledProto, "mcpe_packet");
@@ -34,7 +34,7 @@ export const createDeserializer = () => {
 
     const compiler = new CustomCompiler();
     compiler.addTypesToCompilePublic(protocol.types);
-    compiler.addTypes(require("../datatypes/compiler"));
+    compiler.addTypes(require("../datatypes/compiler").default);
 
     const compiledProto = compiler.compileProtoDefSync();
     return new Parser(compiledProto as any, 'mcpe_packet');
