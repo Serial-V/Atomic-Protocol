@@ -11,7 +11,7 @@ export const realmAuth = async (options: ClientOptions) => {
     return new Promise(async (resolve, reject) => {
         try {
             const auth = await options.authflow.getXboxToken(config.parties.realm, true);
-            await acceptInvite(options.realmId!);
+            if (options.inviteCode) await acceptInvite(options.inviteCode!);
             await OptIn(options);
 
             const getAddress = async (realmId: number) => {
@@ -23,17 +23,18 @@ export const realmAuth = async (options: ClientOptions) => {
                     }
                 });
 
-                if (!fetchResponse.ok) reject({ error: `[address] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
-                if (options.debug) console.log(`[Atomic Protocol] > Get Address Error: ${await fetchResponse.text()}`);
+                if (!fetchResponse.ok) {
+                    reject({ error: `[address] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
+                    if (options.debug) console.log(`[Atomic Protocol] > Get Address Error: ${await fetchResponse.text()}`);
+                }
 
                 const json = await fetchResponse.json();
-                console.log(json);
                 const [host, port] = json?.address?.split(":");
                 return { host, port };
             };
 
-            async function acceptInvite(realmId: number) {
-                const fetchResponse = await fetch(config.endpoints.acceptInvite(realmId), {
+            async function acceptInvite(code: string) {
+                const fetchResponse = await fetch(config.endpoints.acceptInvite(code), {
                     method: "POST",
                     headers: {
                         Authorization: `XBL3.0 x=${auth.userHash};${auth.XSTSToken}`,
@@ -41,14 +42,16 @@ export const realmAuth = async (options: ClientOptions) => {
                     }
                 });
 
-                if (!fetchResponse.ok) reject({ error: `[accept-invite] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
-                if (options.debug) console.log(`[Atomic Protocol] > Accept Invite Error: ${await fetchResponse.text()}`);
+                if (!fetchResponse.ok) {
+                    reject({ error: `[Invite] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
+                    if (options.debug) console.log(`[Atomic Protocol] > Accept Invite Error: ${await fetchResponse.text()}`);
+                }
             }
 
             const { host, port } = await getAddress(options.realmId!);
             if (!host || !port) reject({ error: 'Couldn\'t find a Realm to connect to. Invalid Host/Port' });
 
-            if (options.debug) console.log(`[Atomic Protocol] > Got ${options.realmId!}'s Address; ${host}:${port}`);
+            if (options.debug) console.log(`[Atomic Protocol] > Authenticated with ${options.realmId!}; ${host}:${port}`);
             options.host = host;
             options.port = Number(port);
             resolve(null);

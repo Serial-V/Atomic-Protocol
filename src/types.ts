@@ -26,6 +26,7 @@ export interface ClientOptions {
     host?: string;
     port?: number;
     realmId?: number;
+    inviteCode?: string;
     authflow: Authflow;
 
     protocolVersion?: number;

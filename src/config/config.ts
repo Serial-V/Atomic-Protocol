@@ -24,7 +24,7 @@ export const config = {
     endpoints: {
         worlds: "https://pocket.realms.minecraft.net/worlds",
         address: (realmId: number) => `https://pocket.realms.minecraft.net/worlds/${realmId}/join`,
-        acceptInvite: (realmId: number) => `https://bedrock.frontendlegacy.realms.minecraft-services.net/invites/v1/link/accept/${realmId}`
+        acceptInvite: (code: string) => `https://bedrock.frontendlegacy.realms.minecraft-services.net/invites/v1/link/accept/${code}`
     }
 };
 
