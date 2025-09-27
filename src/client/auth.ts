@@ -8,9 +8,9 @@ export enum AuthenticationType {
     SelfSigned = 2
 }
 export const realmAuth = async (options: ClientOptions) => {
-    return new Promise(async (resolve, reject) => { // Added try/catch v3.6.1 due to: TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator)) ~ NoVa
+    return new Promise(async (resolve, reject) => {
         try {
-            const auth = options.authflow ? await options.authflow.getXboxToken(config.parties.realm, true) : { ...options.auth };
+            const auth = await options.authflow.getXboxToken(config.parties.realm, true)
             await acceptInvite(options.realmId!)
             await OptIn(options)
 
@@ -41,9 +41,6 @@ export const realmAuth = async (options: ClientOptions) => {
                 });
 
                 if (!fetchResponse.ok) reject({ error: `Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
-
-                const json = await fetchResponse.json();
-                console.log(json)
             }
 
             const { host, port } = await getAddress(options.realmId!);

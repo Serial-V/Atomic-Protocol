@@ -1,4 +1,4 @@
-import 'colors';
+import "colors";
 import { FullPacketParser, Serializer } from "protodef";
 import { config } from "../config/config";
 import { Events } from '../Events';
@@ -153,7 +153,11 @@ export class Client extends Connection {
             case "resource_pack_stack": this.emit("resource_pack_stack", des.data.params); break;
         }
 
-        if ((this.options.packets ?? [])?.includes(des.data.name)) {
+        // 1. Emit all packets if array is ommitted
+        // 2. Emit only specific packets specified in the array
+        if (!this.options.packets?.length) {
+            this.emit(des.data.name, des.data.params);
+        } else if (this.options.packets?.includes(des.data.name)) {
             this.emit(des.data.name, des.data.params);
         }
     };

@@ -26,12 +26,7 @@ export interface ClientOptions {
     host?: string;
     port?: number;
     realmId?: number;
-    networkId?: bigint;
-    authflow?: Authflow;
-    auth?: {
-        XSTSToken: string;
-        userHash: string;
-    };
+    authflow: Authflow;
 
     protocolVersion?: number;
     version?: string;
@@ -47,12 +42,14 @@ export interface ClientOptions {
 
     packets?: string[];
 
-    //Nethernet
-    transport?: string;
-
     username?: string;
     profilesFolder?: string;
-    useSignalling?: boolean;
+}
+
+export enum CompressionAlgorithm {
+    None = "none",
+    Zlib = "zlib",
+    Gzip = "gzip"
 }
 
 //Packets

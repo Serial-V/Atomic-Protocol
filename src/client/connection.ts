@@ -4,31 +4,37 @@ import { RaknetClient } from '../rak';
 import { createDecryptor, createEncryptor } from '../transforms/encryption';
 import Framer from '../transforms/framer';
 import { createDeserializer, createSerializer } from "../transforms/serializer";
-import { clientStatus } from '../types';
+import { clientStatus, CompressionAlgorithm } from '../types';
 
 export class Connection extends EventEmitter {
-    public connection!: RaknetClient;
-    encryptionEnabled = false;
-    batchHeader = 0xfe as number | null;
-    compressionReady = false;
-    compressionAlgorithm = 'none';
-    compressionThreshold = 512;
-    compressionHeader = 0;
-    compressionLevel = 7;
-    public framer = new Framer(this);
+    public encryptionEnabled = false;
+    public disableEncryption = false;
+
+    public compressionReady = false;
+    public compressionAlgorithm: CompressionAlgorithm = CompressionAlgorithm.None;
+    public compressionThreshold = 512;
+    public compressionHeader = 0;
+    public compressionLevel = 7;
+
+    public batchHeader: number | null = 0xfe;
+    public framer: Framer;
+
     decrypt: any;
     encrypt: any;
+
     #status = clientStatus.Disconnected;
     sendQ: Buffer[] = [];
     loop!: NodeJS.Timeout;
     serializer: any;
     deserializer: any;
-    disableEncryption = false as boolean;
+
+    public connection!: RaknetClient;
 
     constructor() {
         super();
         this.serializer = createSerializer();
         this.deserializer = createDeserializer();
+        this.framer = new Framer(this);
     };
 
     get status() {

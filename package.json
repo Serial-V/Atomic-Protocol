@@ -26,9 +26,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "bun tsc || true && cp src/config/steve.json dist/config/",
     "bundle": "rollup -c rollup.config.mjs",
-    "release": "bun tsc || true && git commit -m \"Prepare Release\" || true && npm version patch && git push && git push --tags && npm publish"
+    "release": "bun tsc || true && git add -A && git commit -m \"Prepare Release\" || true && npm version patch && git push && git push --tags && npm publish"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
