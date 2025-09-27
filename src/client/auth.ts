@@ -11,7 +11,7 @@ export const realmAuth = async (options: ClientOptions) => {
     return new Promise(async (resolve, reject) => { // Added try/catch v3.6.1 due to: TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator)) ~ NoVa
         try {
             const auth = options.authflow ? await options.authflow.getXboxToken(config.parties.realm, true) : { ...options.auth };
-            await OptIn(options, auth)
+            await OptIn(options)
 
             const getAddress = async (realmId: number) => {
                 const fetchResponse = await fetch(config.endpoints.address(realmId), {
@@ -82,10 +82,9 @@ function postAuthenticate(client: any, profile: Profile, chains: string) {
     client.emit('session');
 }
 
-export async function OptIn(realm: any, authflow: any) {
-    let token = await authflow.getXboxToken("https://pocket.realms.minecraft.net/");
+export async function OptIn(options: any) {
+    const auth = options.authflow ? await options.authflow.getXboxToken(config.parties.realm, true) : { ...options.auth };
     let attempt = 0;
-    let refreshedOn401 = false;
 
     while (true) {
         attempt++;
@@ -94,11 +93,11 @@ export async function OptIn(realm: any, authflow: any) {
         const to = setTimeout(() => ctrl.abort(), 10 * 1000);
         let resp: Response;
         try {
-            resp = await fetch(`https://bedrock.frontendlegacy.realms.minecraft-services.net/worlds/${realm.id}/stories/settings`, {
+            resp = await fetch(`https://bedrock.frontendlegacy.realms.minecraft-services.net/worlds/${options.realmId}/stories/settings`, {
                 method: "POST",
                 headers: {
                     ...config.realmHeaders,
-                    Authorization: `XBL3.0 x=${token.userHash};${token.XSTSToken}`,
+                    Authorization: `XBL3.0 x=${auth.userHash};${auth.XSTSToken}`,
                 },
                 body: JSON.stringify({
                     autostories: true,
@@ -123,13 +122,6 @@ export async function OptIn(realm: any, authflow: any) {
         }
 
         if (resp.status === 204) return { ok: true, status: 204 };
-
-        if (resp.status === 401 && !refreshedOn401) {
-            refreshedOn401 = true;
-            token = await authflow.getXboxToken("https://pocket.realms.minecraft.net/");
-            continue;
-        }
-
         if ((resp.status === 429 || (resp.status >= 500 && resp.status <= 599)) && attempt <= 2 + 1) {
             await new Promise(r => setTimeout(r, 250 + (attempt - 1) * (attempt - 1) * 250));
             continue;

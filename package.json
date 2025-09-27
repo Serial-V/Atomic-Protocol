@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsc",
     "bundle": "rollup -c rollup.config.mjs",
-    "release": "bun tsc || true && git add -A && git commit -m \"Prepare Release\" && npm version patch && git push && git push --tags && npm publish"
+    "release": "bun tsc || true && git commit -m \"Prepare Release\" && npm version patch && git push && git push --tags && npm publish"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
