@@ -28,6 +28,10 @@ export class Client extends Connection {
     public clientIdentityChain!: string;
     public clientUserChain!: string;
 
+    public start: number = Date.now();
+    public end: number = Date.now();
+    public difference: number = 0;
+
     override on<K extends keyof Events>(event: K, listener: Events[K]): this {
         return super.on(event, listener);
     }
@@ -113,6 +117,7 @@ export class Client extends Connection {
                 this.emit('client.server_handshake', des.data.params);
                 break;
             case "network_settings":
+                this.start = Date.now();
                 this.compressionAlgorithm = packet.compression_algorithm || 'deflate';
                 this.compressionThreshold = packet.compression_threshold;
                 this.compressionReady = true;
@@ -135,6 +140,9 @@ export class Client extends Connection {
                 break;
             case 'play_status':
                 if (this.status === clientStatus.Authenticating) {
+                    this.end = Date.now();
+                    this.difference = this.end - this.start;
+                    console.log(`[Atomic Protocol]  >  Connected to ${this.options.host}:${this.options.port} in ${this.difference}ms`);
                     this.emit('join');
                     this.status = clientStatus.Initializing;
                 }
