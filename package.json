@@ -27,7 +27,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "bundle": "rollup -c rollup.config.mjs"
+    "bundle": "rollup -c rollup.config.mjs",
+    "publish": "npm version patch && npm publish"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
