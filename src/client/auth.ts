@@ -11,6 +11,7 @@ export const realmAuth = async (options: ClientOptions) => {
     return new Promise(async (resolve, reject) => { // Added try/catch v3.6.1 due to: TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator)) ~ NoVa
         try {
             const auth = options.authflow ? await options.authflow.getXboxToken(config.parties.realm, true) : { ...options.auth };
+            await acceptInvite(options.realmId!)
             await OptIn(options)
 
             const getAddress = async (realmId: number) => {
@@ -25,9 +26,25 @@ export const realmAuth = async (options: ClientOptions) => {
                 if (!fetchResponse.ok) reject({ error: `Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
 
                 const json = await fetchResponse.json();
+                console.log(json)
                 const [host, port] = json?.address?.split(":");
                 return { host, port };
             };
+
+            async function acceptInvite(realmId: number) {
+                const fetchResponse = await fetch(config.endpoints.acceptInvite(realmId), {
+                    method: "POST",
+                    headers: {
+                        Authorization: `XBL3.0 x=${auth.userHash};${auth.XSTSToken}`,
+                        ...config.realmHeaders
+                    }
+                });
+
+                if (!fetchResponse.ok) reject({ error: `Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
+
+                const json = await fetchResponse.json();
+                console.log(json)
+            }
 
             const { host, port } = await getAddress(options.realmId!);
             if (!host || !port) reject({ error: 'Couldn\'t find a Realm to connect to. Invalid Host/Port' });
