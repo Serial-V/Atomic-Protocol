@@ -10,9 +10,9 @@ export enum AuthenticationType {
 export const realmAuth = async (options: ClientOptions) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const auth = await options.authflow.getXboxToken(config.parties.realm, true)
-            await acceptInvite(options.realmId!)
-            await OptIn(options)
+            const auth = await options.authflow.getXboxToken(config.parties.realm, true);
+            await acceptInvite(options.realmId!);
+            await OptIn(options);
 
             const getAddress = async (realmId: number) => {
                 const fetchResponse = await fetch(config.endpoints.address(realmId), {
@@ -23,10 +23,11 @@ export const realmAuth = async (options: ClientOptions) => {
                     }
                 });
 
-                if (!fetchResponse.ok) reject({ error: `Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
+                if (!fetchResponse.ok) reject({ error: `[address] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
+                if (options.debug) console.log(`[Atomic Protocol] > Get Address Error: ${await fetchResponse.text()}`);
 
                 const json = await fetchResponse.json();
-                console.log(json)
+                console.log(json);
                 const [host, port] = json?.address?.split(":");
                 return { host, port };
             };
@@ -40,17 +41,19 @@ export const realmAuth = async (options: ClientOptions) => {
                     }
                 });
 
-                if (!fetchResponse.ok) reject({ error: `Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
+                if (!fetchResponse.ok) reject({ error: `[accept-invite] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
+                if (options.debug) console.log(`[Atomic Protocol] > Accept Invite Error: ${await fetchResponse.text()}`);
             }
 
             const { host, port } = await getAddress(options.realmId!);
             if (!host || !port) reject({ error: 'Couldn\'t find a Realm to connect to. Invalid Host/Port' });
 
+            if (options.debug) console.log(`[Atomic Protocol] > Got ${options.realmId!}'s Address; ${host}:${port}`);
             options.host = host;
             options.port = Number(port);
             resolve(null);
         } catch (e) {
-            console.log(e)
+            console.log(e);
             reject(e);
         };
     });

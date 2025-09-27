@@ -20,22 +20,30 @@ class CustomCompiler extends Compiler.ProtoDefCompiler {
     }
 }
 
-export const createSerializer = () => {
-    const compiler = new CustomCompiler();
-    compiler.addTypesToCompilePublic(protocol.types);
-    compiler.addTypes(require("../datatypes/compiler").default);
+let cachedCompiledProto: any = null;
+let cachedSerializer: Serializer | null = null;
+let cachedDeserializer: Parser | null = null;
 
-    const compiledProto = compiler.compileProtoDefSync();
-    return new Serializer(compiledProto, "mcpe_packet");
+const getCompiledProto = () => {
+    if (!cachedCompiledProto) {
+        const compiler = new CustomCompiler();
+        compiler.addTypesToCompilePublic(protocol.types);
+        compiler.addTypes(require("../datatypes/compiler").default);
+        cachedCompiledProto = compiler.compileProtoDefSync();
+    }
+    return cachedCompiledProto;
+};
+
+export const createSerializer = () => {
+    if (!cachedSerializer) {
+        cachedSerializer = new Serializer(getCompiledProto(), "mcpe_packet");
+    }
+    return cachedSerializer;
 };
 
 export const createDeserializer = () => {
-    const protocol = require("../config/protocol.json") as { types: any; };
-
-    const compiler = new CustomCompiler();
-    compiler.addTypesToCompilePublic(protocol.types);
-    compiler.addTypes(require("../datatypes/compiler").default);
-
-    const compiledProto = compiler.compileProtoDefSync();
-    return new Parser(compiledProto as any, 'mcpe_packet');
+    if (!cachedDeserializer) {
+        cachedDeserializer = new Parser(getCompiledProto(), "mcpe_packet");
+    }
+    return cachedDeserializer;
 };
