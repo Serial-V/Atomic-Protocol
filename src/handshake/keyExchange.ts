@@ -37,8 +37,8 @@ export const keyExchange = (client: any) => {
         const iv = client.secretKeyBytes.slice(0, 16);
         client.startEncryption(iv);
 
-
         client.write('client_to_server_handshake', {});
+
         //@ts-ignore
         this.emit('join');
         client.status = clientStatus.Initializing;

@@ -47,7 +47,7 @@ client.on("add_player", packet => {
 
 ## 📑 Packet Type Definitions
 
-All packet structures are auto-generated from [`config/protocol.json`](./config/protocol.json) into TypeScript definitions under [`generated/`](./generated).  
+All packet structures are auto-generated from [`src/config/protocol.json`](./src/config/protocol.json) into TypeScript definitions under [`src/packets/`](./src/packets).  
 
 This means you get **full IntelliSense and type-safety** when working with packets:
 
