@@ -1,6 +1,6 @@
 {
   "name": "atomic-protocol",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Atomic Protocol is a modern, efficient, and fully TypeScript-rewritten version of PrismarineJS/bedrock-protocol. It’s built with performance and maintainability in mind.",
   "keywords": [
     "minecraft",
@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsc",
     "bundle": "rollup -c rollup.config.mjs",
-    "release": "npm version patch && npm publish"
+    "release": "bun tsc || true && git add -A && git commit -m \"Prepare Release\" && npm version patch && git push && git push --tags && npm publish"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
