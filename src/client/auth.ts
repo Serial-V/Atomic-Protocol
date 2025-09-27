@@ -1,6 +1,5 @@
 import { config } from "../config/config";
 import { ClientOptions } from "../types";
-import { SessionDirectory } from "../xsapi/session";
 import { Client } from "./client";
 
 export enum AuthenticationType {
@@ -37,21 +36,6 @@ export const realmAuth = async (options: ClientOptions) => {
         } catch (e) { reject(e); };
     });
 };
-
-export async function serverAuthenticate(server: any, options: ClientOptions) {
-    server.nethernet.session = new SessionDirectory(options.authflow, {
-        world: {
-            hostName: server.advertisement.motd,
-            name: server.advertisement.levelName,
-            version: options.version,
-            protocol: options.protocolVersion,
-            memberCount: server.advertisement.playerCount,
-            maxMemberCount: server.advertisement.playersMax,
-        },
-    });
-
-    await server.nethernet.session.createSession(options.networkId);
-}
 
 
 interface Profile {

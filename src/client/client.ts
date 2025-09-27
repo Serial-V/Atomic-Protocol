@@ -5,7 +5,6 @@ import { Events } from '../Events';
 import { keyExchange } from "../handshake/keyExchange";
 import login from "../handshake/login";
 import loginVerify from "../handshake/loginVerify";
-import { NethernetClient } from '../nethernet';
 import { RaknetClient } from "../rak";
 import { createDeserializer, createSerializer } from "../transforms/serializer";
 import { ClientOptions, clientStatus } from "../types";
@@ -13,7 +12,7 @@ import { authenticate, AuthenticationType } from "./auth";
 import { Connection } from "./connection";
 
 export class Client extends Connection {
-    connection!: RaknetClient | NethernetClient;
+    connection!: RaknetClient;
 
     public features: any;
     public options: ClientOptions;
@@ -90,20 +89,7 @@ export class Client extends Connection {
         login(this, this.options);
         loginVerify(this);
 
-        const host = this.options.host;
-        const port = this.options.port;
-
-        const networkId = this.options.networkId;
-
-        if (this.options.transport === 'nethernet') {
-            this.connection = new NethernetClient({ networkId });
-            this.batchHeader = null;
-            this.disableEncryption = true;
-        } else if (this.options.transport === 'raknet') {
-            this.connection = new RaknetClient({ useWorkers: true, host, port });
-            this.batchHeader = 0xfe;
-            this.disableEncryption = false;
-        }
+        this.connection = new RaknetClient({ host: this.options.host, port: Number(this.options.port) });
 
         this.emit('connect_allowed');
     };
@@ -199,35 +185,21 @@ export class Client extends Connection {
         //@ts-ignore
         this.createClientChain(null, this.options.offline);
 
-        const useNewLogin = true; // TODO: mcdata feature
-        let encodedLoginPayload: string;
+        // Removed "MC-Data Feature" - Unnecessary Backwards Compatibility
+        const authType = AuthenticationType.Full;
+        const chain = [this.clientIdentityChain, ...this.accessToken];
 
-        if (useNewLogin) {
-            const authType = AuthenticationType.Full;
-
-            const chain = [this.clientIdentityChain, ...this.accessToken];
-
-            encodedLoginPayload = JSON.stringify({
-                AuthenticationType: authType,
-                Token: '',
-                Certificate: JSON.stringify({ chain })
-            });
-
-            //@ts-ignore
-        } else {
-            const chain = [this.clientIdentityChain, ...this.accessToken];
-            const encodedChain = JSON.stringify({ chain });
-
-            //@ts-ignore
-            encodedLoginPayload = encodedChain;
-        }
+        const encodedLoginPayload = JSON.stringify({
+            AuthenticationType: authType,
+            Token: '',
+            Certificate: JSON.stringify({ chain })
+        });
 
         //@ts-ignore
         this.write('login', {
             protocol_version: config.protocol,
             tokens: {
                 identity: encodedLoginPayload,
-                //@ts-ignore
                 client: this.clientUserChain
             }
         });

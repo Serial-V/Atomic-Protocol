@@ -1,12 +1,12 @@
 
 //@ts-ignore
 import { Authflow } from "prismarine-auth";
-import { AddPlayerPacket } from "./packets/addPlayer";
-import { EmotePacket } from "./packets/emote";
-import { PlayerlistPacket } from "./packets/playerlist";
-import { PlayerSkinPacket } from "./packets/playerSkin";
-import { TextPacket } from "./packets/text";
-import { TickSyncPacket } from "./packets/tick_sync";
+import { AddPlayerPacket } from "./packets/packet_add_player";
+import { EmotePacket } from "./packets/packet_emote";
+import { PlayerListPacket } from "./packets/packet_player_list";
+import { PlayerSkinPacket } from "./packets/packet_player_skin";
+import { TextPacket } from "./packets/packet_text";
+import { TickSyncPacket } from "./packets/packet_tick_sync";
 
 //Consts
 
@@ -65,7 +65,7 @@ export interface Events {
 
     //Packets
 
-    player_list: (packet: PlayerlistPacket) => void;
+    player_list: (packet: PlayerListPacket) => void;
     player_skin: (packet: PlayerSkinPacket) => void;
     add_player: (packet: AddPlayerPacket) => void;
     text: (packet: TextPacket) => void;

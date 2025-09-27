@@ -3,7 +3,7 @@ export const config = {
     debug: false,
     protocol: 827,
     minecraftVersion: "1.21.101",
-    deviceModel: "ReclipsedTS",
+    deviceModel: "AtomicTS",
     connectTimeout: 9000,
     autoInitPlayer: true,
 
