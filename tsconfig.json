@@ -12,8 +12,13 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

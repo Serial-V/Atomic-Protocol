@@ -1,14 +1,34 @@
 {
   "name": "atomic-protocol",
-  "version": "1.0.0",
-  "private": true,
+  "version": "1.0.6",
+  "description": "Atomic Protocol is a modern, efficient, and fully TypeScript-rewritten version of PrismarineJS/bedrock-protocol. It’s built with performance and maintainability in mind.",
+  "keywords": [
+    "minecraft",
+    "bedrock",
+    "pocket-edition",
+    "typescript",
+    "protocol"
+  ],
+  "homepage": "https://github.com/Serial-V/Atomic-Protocol#readme",
+  "bugs": {
+    "url": "https://github.com/Serial-V/Atomic-Protocol/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Serial-V/Atomic-Protocol.git"
+  },
+  "license": "MIT",
+  "author": "Serial-V, NoVa Gh0ul",
+  "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc"
+  "directories": {
+    "doc": "docs"
   },
-  "keywords": [],
-  "author": "Serial-V, NoVa Gh0ul",
+  "scripts": {
+    "build": "tsc",
+    "bundle": "rollup -c rollup.config.mjs"
+  },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
     "@types/uuid-1345": "^0.99.25",
@@ -34,6 +54,8 @@
     "@types/ws": "^8.18.1",
     "prettier": "^3.6.2",
     "raknet-native": "^1.2.3",
+    "rollup": "^4.52.2",
+    "rollup-plugin-dts": "^6.2.3",
     "typescript": "^5.4.5"
   },
   "turbo": {

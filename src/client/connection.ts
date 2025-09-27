@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
 import { config } from '../config/config';
-import { NethernetClient } from '../nethernet';
 import { RaknetClient } from '../rak';
 import { createDecryptor, createEncryptor } from '../transforms/encryption';
 import Framer from '../transforms/framer';
@@ -8,7 +7,7 @@ import { createDeserializer, createSerializer } from "../transforms/serializer";
 import { clientStatus } from '../types';
 
 export class Connection extends EventEmitter {
-    public connection!: RaknetClient | NethernetClient;
+    public connection!: RaknetClient;
     encryptionEnabled = false;
     batchHeader = 0xfe as number | null;
     compressionReady = false;
