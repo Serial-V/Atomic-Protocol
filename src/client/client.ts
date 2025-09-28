@@ -53,6 +53,12 @@ export class Client extends Connection {
         };
     };
 
+    // Exhaustive Logging
+    public setStatus(value: number) {
+        if (this.options.debug) console.log(`[Atomic] > Status Update: ${this.status} -> ${value}`);
+        this.status = value;
+    }
+
     public connect() {
         if (!this.connection) throw new Error('Connect not currently allowed');
         this.once('session', this._connect);
@@ -80,12 +86,12 @@ export class Client extends Connection {
         this.sendQ = [];
         this.connection.close();
         //this.removeAllListeners();
-        this.status = clientStatus.Disconnected;
+        this.setStatus(clientStatus.Disconnected);
     };
 
     public init() {
-        if (!this.options.host || this.options.port == null) throw Error('invalid host/port');
-        if (this.options.protocolVersion !== config.protocol) throw Error(`unsupported protocol version: ${this.options.protocolVersion}`);
+        if (!this.options.host || this.options.port == null) throw Error('Invalid host/port');
+        if (this.options.protocolVersion !== config.protocol) throw Error(`Unsupported protocol version: ${this.options.protocolVersion}`);
         this.serializer = createSerializer();
         this.deserializer = createDeserializer();
 
@@ -142,9 +148,9 @@ export class Client extends Connection {
                 if (this.status === clientStatus.Authenticating) {
                     this.end = Date.now();
                     this.difference = this.end - this.start;
-                    console.log(`[Atomic Protocol]  >  Connected to ${this.options.host}:${this.options.port} in ${this.difference}ms`);
+                    console.log(`[Atomic] > Connected to ${this.options.host}:${this.options.port} in ${this.difference}ms`);
                     this.emit('join');
-                    this.status = clientStatus.Initializing;
+                    this.setStatus(clientStatus.Initializing);
                 }
                 this.onPlayStatus(pakData.params);
                 break;
@@ -155,7 +161,7 @@ export class Client extends Connection {
                 }
         }
 
-        //Client Emits
+        //Required Client Emits
         switch (des.data.name) {
             case "resource_packs_info": this.emit("resource_packs_info", des.data.params); break;
             case "resource_pack_stack": this.emit("resource_pack_stack", des.data.params); break;
@@ -172,7 +178,7 @@ export class Client extends Connection {
 
     _connect = async () => {
         this.connection.onConnected = () => {
-            this.status = clientStatus.Connecting;
+            this.setStatus(clientStatus.Connecting);
             this.queue('request_network_settings', { client_protocol: Number(config.protocol) });
         };
         this.connection.onCloseConnection = (reason: any) => {
@@ -192,7 +198,7 @@ export class Client extends Connection {
     };
 
     sendLogin() {
-        this.status = clientStatus.Authenticating;
+        this.setStatus(clientStatus.Authenticating);
 
         //@ts-ignore
         this.createClientChain(null, this.options.offline);
@@ -225,7 +231,7 @@ export class Client extends Connection {
 
     onPlayStatus(statusPacket: { status: string; }) {
         if (this.status === clientStatus.Initializing && statusPacket.status === 'player_spawn') {
-            this.status = clientStatus.Initialized;
+            this.setStatus(clientStatus.Initialized);
             if (this.entityId) this.on('start_game', () => this.write('set_local_player_as_initialized', { runtime_entity_id: this.entityId }));
             else this.write('set_local_player_as_initialized', { runtime_entity_id: this.entityId });
         };

@@ -62,8 +62,9 @@ client.on("text", (packet) => {
 
 ## 🗺️ Roadmap
 
-- [ ] Nethernet Support
 - [ ] API & FAQ Documentation
+- [ ] Shrink Package Requirements
+- [ ] Nethernet Support
 - [ ] **Future Enhancements**
   - Consider adding proxy support (client ↔ server pass-through).
   - Explore server implementation (stretch goal).

@@ -15,6 +15,8 @@ export const realmAuth = async (options: ClientOptions) => {
             await OptIn(options);
 
             const getAddress = async (realmId: number) => {
+                if (options.debug) console.log(`[Atomic] > Fetching ${realmId}'s Address`);
+
                 const fetchResponse = await fetch(config.endpoints.address(realmId), {
                     method: "GET",
                     headers: {
@@ -24,8 +26,8 @@ export const realmAuth = async (options: ClientOptions) => {
                 });
 
                 if (!fetchResponse.ok) {
-                    reject({ error: `[address] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
-                    if (options.debug) console.log(`[Atomic Protocol] > Get Address Error: ${await fetchResponse.text()}`);
+                    reject({ error: `[Error] Unable to fetch Realm Address; ${fetchResponse.status} ${fetchResponse.statusText}` });
+                    return null;
                 }
 
                 const json = await fetchResponse.json();
@@ -48,10 +50,13 @@ export const realmAuth = async (options: ClientOptions) => {
                 }
             }
 
-            const { host, port } = await getAddress(options.realmId!);
+            const address = await getAddress(options.realmId!);
+            if (!address) return; //Added return before deconstruct | Better Error Catching
+
+            const { host, port } = address;
             if (!host || !port) reject({ error: 'Couldn\'t find a Realm to connect to. Invalid Host/Port' });
 
-            if (options.debug) console.log(`[Atomic Protocol] > Authenticated with ${options.realmId!}; ${host}:${port}`);
+            if (options.debug) console.log(`[Atomic] > Authenticated with ${options.realmId!}; ${host}:${port}`);
             options.host = host;
             options.port = Number(port);
             resolve(null);
