@@ -15,6 +15,12 @@ class RingBufferPool {
         this.index = (this.index + 1) % this.buffers.length;
         return buf.subarray(0, len);
     }
+
+    rawNext() {
+        const buf = this.buffers[this.index];
+        this.index = (this.index + 1) % this.buffers.length;
+        return buf;
+    }
 }
 
 const bufferPool = new RingBufferPool(128, 65536);
@@ -66,8 +72,8 @@ export const createDeserializer = () => {
 };
 
 export const serializeWithPool = (serializer: Serializer, packet: any) => {
-    const buf = bufferPool.next(65536);
     const result = serializer.createPacketBuffer(packet);
+    const buf = bufferPool.rawNext();
 
     result.copy(buf, 0, 0, result.length);
     return buf.subarray(0, result.length);
