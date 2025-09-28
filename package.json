@@ -1,6 +1,6 @@
 {
   "name": "atomic-protocol",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Atomic Protocol is a modern, efficient, and fully TypeScript-rewritten version of PrismarineJS/bedrock-protocol. It’s built with performance and maintainability in mind.",
   "keywords": [
     "minecraft",
