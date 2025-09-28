@@ -1,41 +1,19 @@
 import { Compiler, FullPacketParser, Serializer } from "protodef";
+
 import protocol from "../config/protocol.json";
-import { config } from "../config/config";
-
-class RingBufferPool {
-    private buffers: Buffer[];
-    private index = 0;
-
-    constructor(poolSize = 128, bufferSize = 65536) {
-        this.buffers = Array.from({ length: poolSize }, () => Buffer.allocUnsafe(bufferSize));
-    }
-
-    next(len: number) {
-        const buf = this.buffers[this.index];
-        this.index = (this.index + 1) % this.buffers.length;
-        return buf.subarray(0, len);
-    }
-
-    rawNext() {
-        const buf = this.buffers[this.index];
-        this.index = (this.index + 1) % this.buffers.length;
-        return buf;
-    }
-}
-
-const bufferPool = new RingBufferPool(128, 65536);
 
 class Parser extends FullPacketParser {
+    //Not necessary for public use.
     // verify(deserialized: any, serializer: Serializer) {
-    //     if (!config.debug) return;
     //     const { name, params } = deserialized.data;
+
     //     const oldBuffer = deserialized.fullBuffer;
     //     const newBuffer = serializer.createPacketBuffer({ name, params });
-
-    //     if (!newBuffer.equals(oldBuffer)) console.warn("Packet Mismatch", name);
+    //     if (!newBuffer.equals(oldBuffer)) {
+    //         console.warn('Failed to re-encode', name);
+    //     }
     // }
 }
-
 
 class CustomCompiler extends Compiler.ProtoDefCompiler {
     public addTypesToCompilePublic(types: any) {
@@ -58,22 +36,11 @@ const getCompiledProto = () => {
 };
 
 export const createSerializer = () => {
-    if (!cachedSerializer) {
-        cachedSerializer = new Serializer(getCompiledProto(), "mcpe_packet");
-    }
+    if (!cachedSerializer) cachedSerializer = new Serializer(getCompiledProto(), "mcpe_packet");
     return cachedSerializer;
 };
 
 export const createDeserializer = () => {
-    if (!cachedDeserializer) {
-        cachedDeserializer = new Parser(getCompiledProto(), "mcpe_packet");
-    }
+    if (!cachedDeserializer) cachedDeserializer = new Parser(getCompiledProto(), "mcpe_packet");
     return cachedDeserializer;
 };
-
-export const serializeWithPool = (serializer: Serializer, packet: any) => {
-    const buf = bufferPool.rawNext();
-    serializer.createPacketBuffer(packet).copy(buf, 0);
-    return buf;
-};
-
