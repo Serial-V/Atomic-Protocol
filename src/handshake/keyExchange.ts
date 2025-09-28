@@ -41,7 +41,7 @@ export const keyExchange = (client: any) => {
 
         //@ts-ignore
         this.emit('join');
-        client.status = clientStatus.Initializing;
+        client.setStatus(clientStatus.Initializing);
     }
 
     client.once('client.server_handshake', startServerboundEncryption);

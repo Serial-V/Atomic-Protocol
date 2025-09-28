@@ -108,7 +108,7 @@ export class Client extends Connection {
         return this.startGameData.runtime_entity_id;
     };
 
-    private onEncapsulated = (encapsulated: any, inetAddr: any) => {
+    private onEncapsulated = (encapsulated: any, _inetAddr: any) => {
         const buffer = Buffer.from(encapsulated.buffer);
         process.nextTick(() => this.handle(buffer));
     };
@@ -148,7 +148,6 @@ export class Client extends Connection {
                 if (this.status === clientStatus.Authenticating) {
                     this.end = Date.now();
                     this.difference = this.end - this.start;
-                    console.log(`[Atomic] > Connected to ${this.options.host}:${this.options.port} in ${this.difference}ms`);
                     this.emit('join');
                     this.setStatus(clientStatus.Initializing);
                 }
