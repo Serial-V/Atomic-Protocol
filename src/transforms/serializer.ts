@@ -26,14 +26,14 @@ class RingBufferPool {
 const bufferPool = new RingBufferPool(128, 65536);
 
 class Parser extends FullPacketParser {
-    verify(deserialized: any, serializer: Serializer) {
-        if (!config.debug) return;
-        const { name, params } = deserialized.data;
-        const oldBuffer = deserialized.fullBuffer;
-        const newBuffer = serializer.createPacketBuffer({ name, params });
+    // verify(deserialized: any, serializer: Serializer) {
+    //     if (!config.debug) return;
+    //     const { name, params } = deserialized.data;
+    //     const oldBuffer = deserialized.fullBuffer;
+    //     const newBuffer = serializer.createPacketBuffer({ name, params });
 
-        if (!newBuffer.equals(oldBuffer)) console.warn("Packet Mismatch", name);
-    }
+    //     if (!newBuffer.equals(oldBuffer)) console.warn("Packet Mismatch", name);
+    // }
 }
 
 
@@ -72,9 +72,8 @@ export const createDeserializer = () => {
 };
 
 export const serializeWithPool = (serializer: Serializer, packet: any) => {
-    const result = serializer.createPacketBuffer(packet);
     const buf = bufferPool.rawNext();
-
-    result.copy(buf, 0, 0, result.length);
-    return buf.subarray(0, result.length);
+    serializer.createPacketBuffer(packet).copy(buf, 0);
+    return buf;
 };
+
