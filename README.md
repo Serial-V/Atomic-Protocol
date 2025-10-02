@@ -1,6 +1,6 @@
 # Atomic Protocol
 
-> Documentation coming soon
+[Our Docs](./docs/API.md)
 
 Atomic Protocol is a modern, efficient, and fully TypeScript-rewritten version of  
 [PrismarineJS/bedrock-protocol](https://github.com/PrismarineJS/bedrock-protocol).  
@@ -63,7 +63,6 @@ client.on("text", (packet) => {
 ## 🗺️ Roadmap
 
 - [ ] API & FAQ Documentation
-- [ ] Shrink Package Requirements
 - [ ] Nethernet Support
 - [ ] **Future Enhancements**
   - Consider adding proxy support (client ↔ server pass-through).

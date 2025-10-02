@@ -1,3 +1,1 @@
-# Atomic API
-
-> Coming Soon
+# Coming Soon
