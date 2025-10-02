@@ -26,7 +26,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "build": "bun tsc || true && cp src/config/steve.json dist/config/",
+    "build": "bun tsc || true && cp src/config/steve.json dist/config/ && cp src/Events.d.ts dist/",
     "bundle": "rollup -c rollup.config.mjs",
     "release": "bun tsc || true && git commit -m \"Prepare Release\" || true && npm version patch && git push && git push --tags && npm publish"
   },
