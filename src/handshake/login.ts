@@ -22,7 +22,6 @@ export = (client: any, options: ClientOptions) => {
     client.createClientUserChain = (privateKey: string) => {
         let payload = {
             ...skinData,
-            SkinGeometryDataEngineVersion: '',
             ClientRandomId: Date.now(),
             CurrentInputMode: 1,
             DefaultInputMode: 1,
@@ -32,14 +31,17 @@ export = (client: any, options: ClientOptions) => {
             GameVersion: config.minecraftVersion,
             GuiScale: -1,
             LanguageCode: 'en_GB',
+            GraphicsMode: 1,
+
             PlatformOfflineId: '',
             PlatformOnlineId: '',
-            PlayFabId: nextUUID().replace(/-/g, '').slice(0, 16),
+            PlayFabId: nextUUID().replace(/-/g, '').slice(0, 16).toLowerCase(),
             SelfSignedId: nextUUID(),
             ServerAddress: `${options.host}:${options.port}`,
 
             ThirdPartyName: client.profile.name,
-            ThirdPartyNameOnly: false,
+            ThirdPartyNameOnly: undefined,
+
             UIProfile: 0,
             IsEditorMode: false,
             TrustedSkin: false,
