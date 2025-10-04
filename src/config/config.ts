@@ -1,8 +1,8 @@
 
 export const config = {
     debug: false,
-    protocol: 827,
-    minecraftVersion: "1.21.101",
+    protocol: 844,
+    minecraftVersion: "1.21.111",
     deviceModel: "AtomicTS",
     connectTimeout: 9000,
     autoInitPlayer: true,
@@ -15,7 +15,7 @@ export const config = {
         "Cache-Control": "no-cache",
         Charset: "utf-8",
         "Content-Type": "application/json",
-        "Client-Version": "1.21.101",
+        "Client-Version": "1.21.111",
         "User-Agent": "MCPE/UWP",
         "Accept-Language": "en-US",
         "Accept-Encoding": "gzip, deflate, br",
