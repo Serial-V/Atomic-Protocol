@@ -56,10 +56,12 @@ export default class Framer {
     }
 
     static decode(client: Connection, buf: Buffer) {
+        //Changed batchHeader from "this.batchHeader" to "client.batchHeader" & added a ? 1 : 0 check
+
         //@ts-ignore
-        if (this.batchHeader && buf[0] !== this.batchHeader) throw Error(`bad batch packet header, received: ${buf[0]}, expected: ${this.batchHeader}`);
-        const buffer = buf.slice(1);
-        // Decompress
+        if (client.batchHeader && buf[0] !== client.batchHeader) throw Error(`bad batch packet header, received: ${buf[0]}, expected: ${this.batchHeader}`);
+        const buffer = buf.slice(client.batchHeader ? 1 : 0);
+
         let decompressed;
 
         //@ts-ignore

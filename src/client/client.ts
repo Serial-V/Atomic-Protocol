@@ -5,6 +5,7 @@ import { Events } from '../Events';
 import { keyExchange } from "../handshake/keyExchange";
 import login from "../handshake/login";
 import loginVerify from "../handshake/loginVerify";
+import { NethernetClient } from "../nethernet";
 import { RaknetClient } from "../rak";
 import { createDeserializer, createSerializer } from "../transforms/serializer";
 import { ClientOptions, clientStatus } from "../types";
@@ -12,7 +13,7 @@ import { authenticate, AuthenticationType } from "./auth";
 import { Connection } from "./connection";
 
 export class Client extends Connection {
-    connection!: RaknetClient;
+    connection!: RaknetClient | NethernetClient;
 
     public features: any;
     public options: ClientOptions;
@@ -27,6 +28,7 @@ export class Client extends Connection {
     public accessToken!: string;
     public clientIdentityChain!: string;
     public clientUserChain!: string;
+    public nethernet: any;
 
     public start: number = Date.now();
     public end: number = Date.now();
@@ -47,6 +49,10 @@ export class Client extends Connection {
         this.startGameData = {};
         this.clientRuntimeId = null;
         this.viewDistance = options.viewDistance ?? 10;
+
+        if (this.options.transport === "nethernet") {
+            this.nethernet = {};
+        }
 
         if (!options.delayedInit) {
             this.init();
@@ -90,7 +96,6 @@ export class Client extends Connection {
     };
 
     public init() {
-        if (!this.options.host || this.options.port == null) throw Error('Invalid host/port');
         if (this.options.protocolVersion !== config.protocol) throw Error(`Unsupported protocol version: ${this.options.protocolVersion}`);
         this.serializer = createSerializer();
         this.deserializer = createDeserializer();
@@ -99,7 +104,20 @@ export class Client extends Connection {
         login(this, this.options);
         loginVerify(this);
 
-        this.connection = new RaknetClient({ host: this.options.host, port: Number(this.options.port) });
+        const host = this.options.host;
+        const port = this.options.port;
+
+        const networkId = this.options.networkId;
+
+        if (this.options.transport === 'nethernet') {
+            this.connection = new NethernetClient({ networkId });
+            this.batchHeader = null;
+            this.disableEncryption = true;
+        } else if (this.options.transport === 'raknet') {
+            this.connection = new RaknetClient({ useWorkers: true, host, port });
+            this.batchHeader = 0xfe;
+            this.disableEncryption = false;
+        }
 
         this.emit('connect_allowed');
     };

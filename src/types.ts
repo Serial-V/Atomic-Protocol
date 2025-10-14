@@ -45,6 +45,12 @@ export interface ClientOptions {
 
     username?: string;
     profilesFolder?: string;
+
+    //Nethernet
+    networkId?: bigint;
+    transport?: string;
+    useSignalling?: boolean;
+
 }
 
 export enum CompressionAlgorithm {

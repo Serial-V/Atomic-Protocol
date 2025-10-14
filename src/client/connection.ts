@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { config } from '../config/config';
+import { NethernetClient } from '../nethernet';
 import { RaknetClient } from '../rak';
 import { createDecryptor, createEncryptor } from '../transforms/encryption';
 import Framer from '../transforms/framer';
@@ -7,6 +8,8 @@ import { createDeserializer, createSerializer } from "../transforms/serializer";
 import { clientStatus, CompressionAlgorithm } from '../types';
 
 export class Connection extends EventEmitter {
+    public connection!: RaknetClient | NethernetClient;
+
     public encryptionEnabled = false;
     public disableEncryption = false;
 
@@ -28,8 +31,6 @@ export class Connection extends EventEmitter {
     serializer: any;
     deserializer: any;
 
-    public connection!: RaknetClient;
-
     constructor() {
         super();
         this.serializer = createSerializer();
@@ -47,6 +48,7 @@ export class Connection extends EventEmitter {
     };
 
     startEncryption(iv: any) {
+        if (this.disableEncryption) return;
         this.encryptionEnabled = true;
         //@ts-ignore
         if (config.debug) console.log(`<DEBUG> Started Encryption`, this.sharedSecret, iv);

@@ -31,6 +31,11 @@ export const realmAuth = async (options: ClientOptions) => {
                 }
 
                 const json = await fetchResponse.json();
+
+                if (json.networkProtocol === "NETHERNET") {
+                    return json.address;
+                }
+
                 const [host, port] = json?.address?.split(":");
                 return { host, port };
             };
@@ -53,13 +58,18 @@ export const realmAuth = async (options: ClientOptions) => {
             const address = await getAddress(options.realmId!);
             if (!address) return; //Added return before deconstruct | Better Error Catching
 
-            const { host, port } = address;
-            if (!host || !port) reject({ error: 'Couldn\'t find a Realm to connect to. Invalid Host/Port' });
+            if (address?.host && address?.port) {
+                const { host, port } = address;
+                if (!host || !port) reject({ error: 'Couldn\'t find a Realm to connect to. Invalid Host/Port' });
 
-            if (options.debug) console.log(`[Atomic] > Authenticated with ${options.realmId!}; ${host}:${port}`);
-            options.host = host;
-            options.port = Number(port);
-            resolve(null);
+                options.host = host;
+                options.port = Number(port);
+                resolve(null);
+            } else {
+                options.networkId = address;
+                options.useSignalling = true;
+                resolve(null);
+            }
         } catch (e) {
             console.log(e);
             reject(e);

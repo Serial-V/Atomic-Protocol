@@ -2,7 +2,7 @@
 export const config = {
     debug: false,
     protocol: 844,
-    minecraftVersion: "1.21.111",
+    minecraftVersion: "1.21.113",
     deviceModel: "AtomicTS",
     connectTimeout: 9000,
     autoInitPlayer: true,
@@ -15,7 +15,7 @@ export const config = {
         "Cache-Control": "no-cache",
         Charset: "utf-8",
         "Content-Type": "application/json",
-        "Client-Version": "1.21.111",
+        "Client-Version": "1.21.113",
         "User-Agent": "MCPE/UWP",
         "Accept-Language": "en-US",
         "Accept-Encoding": "gzip, deflate, br",
@@ -29,6 +29,7 @@ export const config = {
 };
 
 export const defaultOptions = {
+    transport: "raknet",
     version: config.minecraftVersion,
     autoInitPlayer: true,
     connectTimeout: 9000,
