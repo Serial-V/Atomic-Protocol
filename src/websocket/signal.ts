@@ -180,6 +180,7 @@ export class NethernetSignal extends EventEmitter {
 function parseTurnServers(dataString: string) {
     const servers: any = [];
     const data = JSON.parse(dataString);
+    if (config.debug) console.log("<DEBUG>".gray + 'Parsed Turn Servers', data);
 
     if (!data.TurnAuthServers) return servers;
 
