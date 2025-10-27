@@ -51,7 +51,7 @@ export class NethernetClient {
     }
 
     close() {
-        this.nethernet.close();
+        this.nethernet.close("");
     }
 }
 
