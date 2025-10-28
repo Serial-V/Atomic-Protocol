@@ -1,8 +1,8 @@
 
 export const config = {
     debug: false,
-    protocol: 844,
-    minecraftVersion: "1.21.113",
+    protocol: 859,
+    minecraftVersion: "1.21.120",
     deviceModel: "AtomicTS",
     connectTimeout: 9000,
     autoInitPlayer: true,
@@ -15,11 +15,10 @@ export const config = {
         "Cache-Control": "no-cache",
         Charset: "utf-8",
         "Content-Type": "application/json",
-        "Client-Version": "1.21.113",
+        "Client-Version": "1.21.120",
         "User-Agent": "MCPE/UWP",
         "Accept-Language": "en-US",
-        "Accept-Encoding": "gzip, deflate, br",
-        Host: "pocket.realms.minecraft.net",
+        "Accept-Encoding": "gzip, deflate, br"
     },
     endpoints: {
         worlds: "https://pocket.realms.minecraft.net/worlds",

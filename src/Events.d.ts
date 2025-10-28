@@ -74,6 +74,7 @@ import type { FilterTextPacketPacket } from "./packets/packet_filter_text_packet
 import type { GameRulesChangedPacket } from "./packets/packet_game_rules_changed";
 import type { GameTestRequestPacket } from "./packets/packet_game_test_request";
 import type { GameTestResultsPacket } from "./packets/packet_game_test_results";
+import type { GraphicsParameterOverridePacket } from "./packets/packet_graphics_parameter_override";
 import type { GuiDataPickItemPacket } from "./packets/packet_gui_data_pick_item";
 import type { HurtArmorPacket } from "./packets/packet_hurt_armor";
 import type { InitiateWebSocketConnectionPacket } from "./packets/packet_initiate_web_socket_connection";
@@ -449,6 +450,9 @@ export interface Events {
   ) => void;
   set_hud: (packet: SetHudPacket) => void;
   award_achievement: (packet: AwardAchievementPacket) => void;
+  graphics_parameter_override: (
+    packet: GraphicsParameterOverridePacket,
+  ) => void;
   server_post_move: (packet: ServerPostMovePacket) => void;
   clientbound_close_form: (packet: ClientboundCloseFormPacket) => void;
   serverbound_loading_screen: (packet: ServerboundLoadingScreenPacket) => void;

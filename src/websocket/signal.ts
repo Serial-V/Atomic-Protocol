@@ -14,11 +14,12 @@ type MessageEnvelope =
     | { Type: 1; From: string; Message: string; } // Signal
     | { Type: 2; From: "Server"; Message: string; };
 
-type TurnServer = {
+type IceServerConfig = {
     hostname: string;
     port: number;
     username?: string;
     password?: string;
+    relayType?: "TurnUdp" | "TurnTcp" | "TurnTls";
 };
 
 type AuthflowLike = {
@@ -35,7 +36,7 @@ export class NethernetSignal extends EventEmitter {
     public authflow: AuthflowLike;
     public version: string;
     public ws: WebSocket | null = null;
-    public credentials: TurnServer[] | null = null;
+    public credentials: IceServerConfig[] = [];
 
     private pingInterval: NodeJS.Timeout | null = null;
     private retryCount = 0;
@@ -263,8 +264,8 @@ export class NethernetSignal extends EventEmitter {
     }
 }
 
-function parseTurnServers(dataString: string): TurnServer[] {
-    const servers: TurnServer[] = [];
+function parseTurnServers(dataString: string): IceServerConfig[] {
+    const servers: IceServerConfig[] = [];
     try {
         const data = JSON.parse(dataString);
         if (config.debug) console.log("<DEBUG>".gray + "Parsed Turn Servers", data);
@@ -272,20 +273,69 @@ function parseTurnServers(dataString: string): TurnServer[] {
         const list = Array.isArray(data?.TurnAuthServers) ? data.TurnAuthServers : [];
         for (const server of list) {
             const urls = Array.isArray(server?.Urls) ? server.Urls : [];
-            for (const url of urls) {
-                const m = String(url).match(/^(stun|turns?|stuns?):([^:\/?#]+):(\d+)/i);
-                if (m) {
-                    servers.push({
-                        hostname: m[2],
-                        port: parseInt(m[3], 10),
-                        username: server?.Username || undefined,
-                        password: server?.Password || undefined
-                    });
+
+            for (const rawUrl of urls) {
+                if (typeof rawUrl !== "string") continue;
+                const parsed = parseIceUrl(rawUrl);
+                if (!parsed) continue;
+
+                const entry: IceServerConfig = {
+                    hostname: parsed.hostname,
+                    port: parsed.port
+                };
+
+                if (parsed.isTurn) {
+                    entry.username = server?.Username || undefined;
+                    entry.password = server?.Password || server?.Credential || undefined;
+                    entry.relayType = parsed.relayType;
                 }
+
+                servers.push(entry);
             }
         }
     } catch (e) {
         if (config.debug) console.log("<DEBUG>".gray + "Failed to parse TURN servers", e);
     }
     return servers;
+}
+
+function parseIceUrl(url: string): { hostname: string; port: number; relayType?: IceServerConfig["relayType"]; isTurn: boolean; } | null {
+    const match = url.trim().match(/^(?<scheme>stuns?|turns?)(?::\/\/)?(?<host>[^:?\s]+)(?::(?<port>\d+))?(?:\?(?<query>.*))?$/i);
+    if (!match || !match.groups) {
+        return null;
+    }
+
+    const scheme = match.groups.scheme.toLowerCase();
+    const hostname = match.groups.host;
+    const port = match.groups.port ? parseInt(match.groups.port, 10) : defaultPortForScheme(scheme);
+    if (!hostname || Number.isNaN(port)) {
+        return null;
+    }
+
+    let relayType: IceServerConfig["relayType"];
+    const isTurn = scheme.startsWith("turn");
+    if (scheme.startsWith("turn")) {
+        const params = new URLSearchParams(match.groups.query ?? "");
+        const transport = params.get("transport")?.toLowerCase();
+
+        if (scheme === "turns") {
+            relayType = "TurnTls";
+        } else if (transport === "tcp") {
+            relayType = "TurnTcp";
+        } else {
+            relayType = "TurnUdp";
+        }
+    }
+
+    return { hostname, port, relayType, isTurn };
+}
+
+function defaultPortForScheme(scheme: string): number {
+    switch (scheme) {
+        case "stuns":
+        case "turns":
+            return 5349;
+        default:
+            return 3478;
+    }
 }

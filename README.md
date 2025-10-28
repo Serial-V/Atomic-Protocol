@@ -62,8 +62,8 @@ client.on("text", (packet) => {
 
 ## 🗺️ Roadmap
 
-- [ ] API & FAQ Documentation
 - [x] Nethernet Support
+- [ ] API & FAQ Documentation
 - [ ] **Future Enhancements**
   - Consider adding proxy support (client ↔ server pass-through).
   - Explore server implementation (stretch goal).

@@ -2,6 +2,8 @@
 import type { EaseType } from "./EaseType";
 import type { Vec3f } from "./vec3f";
 import type { Vec2f } from "./vec2f";
+import type { CameraSplineInstruction } from "./CameraSplineInstruction";
+import type { CameraAttachToEntityInstruction } from "./CameraAttachToEntityInstruction";
 
 export interface CameraInstructionPacket {
   instruction_set: {  runtime_id: number;
@@ -26,4 +28,7 @@ export interface CameraInstructionPacket {
   ease_time: number;
   ease_type: EaseType;
   clear: boolean;} | null;
+  spline_instruction: CameraSplineInstruction | null;
+  attach_instruction: CameraAttachToEntityInstruction | null;
+  detach_from_entity: boolean | null;
 }

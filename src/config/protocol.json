@@ -4866,7 +4866,9 @@
           "118": "async_join_task_denied",
           "119": "realms_timeline_required",
           "120": "guest_withough_host",
-          "121": "failed_to_join_experience"
+          "121": "failed_to_join_experience",
+          "122": "discovery_environment_mismatch",
+          "123": "host_without_keys"
         }
       }
     ],
@@ -5065,6 +5067,13 @@
                 "type": "BiomeConditionalTransformation"
               }
             ]
+          ]
+        },
+        {
+          "name": "replacement_data",
+          "type": [
+            "option",
+            "BiomeReplacementData"
           ]
         }
       ]
@@ -5506,6 +5515,41 @@
         }
       ]
     ],
+    "BiomeReplacementData": [
+      "container",
+      [
+        {
+          "name": "biome",
+          "type": "li16"
+        },
+        {
+          "name": "dimension",
+          "type": "li16"
+        },
+        {
+          "name": "target_biomes",
+          "type": [
+            "array",
+            {
+              "countType": "varint",
+              "type": "li16"
+            }
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "lf32"
+        },
+        {
+          "name": "noise_frequency_scale",
+          "type": "lf32"
+        },
+        {
+          "name": "replacement_index",
+          "type": "li32"
+        }
+      ]
+    ],
     "BiomeConditionalTransformation": [
       "container",
       [
@@ -5568,6 +5612,90 @@
           "31": "InOutElastic"
         }
       }
+    ],
+    "GraphicsOverrideParameterType": [
+      "mapper",
+      {
+        "type": "u8",
+        "mappings": {
+          "0": "sky_zenith_color"
+        }
+      }
+    ],
+    "CameraSplineType": [
+      "mapper",
+      {
+        "type": "u8",
+        "mappings": {
+          "0": "catmull_rom",
+          "1": "linear"
+        }
+      }
+    ],
+    "CameraSplineRotationOption": [
+      "container",
+      [
+        {
+          "name": "key_frame_values",
+          "type": "vec3f"
+        },
+        {
+          "name": "key_frame_times",
+          "type": "lf32"
+        }
+      ]
+    ],
+    "CameraSplineInstruction": [
+      "container",
+      [
+        {
+          "name": "total_time",
+          "type": "lf32"
+        },
+        {
+          "name": "type",
+          "type": "CameraSplineType"
+        },
+        {
+          "name": "curve",
+          "type": [
+            "array",
+            {
+              "countType": "varint",
+              "type": "vec3f"
+            }
+          ]
+        },
+        {
+          "name": "progress_key_frames",
+          "type": [
+            "array",
+            {
+              "countType": "varint",
+              "type": "vec2f"
+            }
+          ]
+        },
+        {
+          "name": "rotation_option",
+          "type": [
+            "array",
+            {
+              "countType": "varint",
+              "type": "CameraSplineRotationOption"
+            }
+          ]
+        }
+      ]
+    ],
+    "CameraAttachToEntityInstruction": [
+      "container",
+      [
+        {
+          "name": "unique_entity_id",
+          "type": "li64"
+        }
+      ]
     ],
     "mcpe_packet": [
       "container",
@@ -5801,7 +5929,8 @@
                 "326": "player_location",
                 "327": "clientbound_controls_scheme",
                 "328": "server_script_debug_drawer",
-                "329": "serverbound_pack_setting_change"
+                "329": "serverbound_pack_setting_change",
+                "331": "graphics_parameter_override"
               }
             }
           ]
@@ -6035,7 +6164,8 @@
                 "player_location": "packet_player_location",
                 "clientbound_controls_scheme": "packet_clientbound_controls_scheme",
                 "server_script_debug_drawer": "packet_server_script_debug_drawer",
-                "serverbound_pack_setting_change": "packet_serverbound_pack_setting_change"
+                "serverbound_pack_setting_change": "packet_serverbound_pack_setting_change",
+                "graphics_parameter_override": "packet_graphics_parameter_override"
               }
             }
           ]
@@ -7568,7 +7698,8 @@
                 "75": "fall",
                 "76": "grow_up",
                 "77": "vibration_detected",
-                "78": "drink_milk"
+                "78": "drink_milk",
+                "79": "shake_wetness_stop"
               }
             }
           ]
@@ -7934,6 +8065,10 @@
         {
           "name": "runtime_entity_id",
           "type": "varint64"
+        },
+        {
+          "name": "data",
+          "type": "lf32"
         },
         {
           "anon": true,
@@ -9768,7 +9903,7 @@
       [
         {
           "name": "offer_id",
-          "type": "string"
+          "type": "uuid"
         },
         {
           "name": "redirect_type",
@@ -13078,6 +13213,45 @@
         }
       ]
     ],
+    "packet_graphics_parameter_override": [
+      "container",
+      [
+        {
+          "name": "values",
+          "type": [
+            "array",
+            {
+              "countType": "varint",
+              "type": [
+                "container",
+                [
+                  {
+                    "name": "key",
+                    "type": "lf32"
+                  },
+                  {
+                    "name": "value",
+                    "type": "vec3f"
+                  }
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "name": "biome_identifier",
+          "type": "string"
+        },
+        {
+          "name": "parameter_type",
+          "type": "GraphicsOverrideParameterType"
+        },
+        {
+          "name": "reset",
+          "type": "bool"
+        }
+      ]
+    ],
     "InputLockFlags": [
       "bitflags",
       {
@@ -13349,6 +13523,27 @@
                 }
               ]
             ]
+          ]
+        },
+        {
+          "name": "spline_instruction",
+          "type": [
+            "option",
+            "CameraSplineInstruction"
+          ]
+        },
+        {
+          "name": "attach_instruction",
+          "type": [
+            "option",
+            "CameraAttachToEntityInstruction"
+          ]
+        },
+        {
+          "name": "detach_from_entity",
+          "type": [
+            "option",
+            "bool"
           ]
         }
       ]

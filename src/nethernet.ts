@@ -41,6 +41,22 @@ export class NethernetClient {
         this.nethernet.send(data);
     }
 
+    set credentials(value: any) {
+        (this.nethernet as any).credentials = value;
+    }
+
+    get credentials(): any {
+        return (this.nethernet as any).credentials;
+    }
+
+    set signalHandler(handler: (signal: any) => void) {
+        (this.nethernet as any).signalHandler = handler;
+    }
+
+    handleSignal(signal: any) {
+        (this.nethernet as any).handleSignal(signal);
+    }
+
     async ping(timeout = 10000) {
         this.nethernet.ping();
         return waitFor((done: any) => {

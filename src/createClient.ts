@@ -46,6 +46,13 @@ async function connect(client: Client) {
     if (client.options.transport === "nethernet") {
         if (client.options.useSignalling) {
             //@ts-ignore
+            if (client.nethernet.signalling) {
+                try {
+                    //@ts-ignore
+                    await client.nethernet.signalling.destroy();
+                } catch { }
+            }
+            //@ts-ignore
             client.nethernet.signalling = new NethernetSignal(client.connection.nethernet.networkId, client.options.authflow, client.options.version);
 
             //@ts-ignore
