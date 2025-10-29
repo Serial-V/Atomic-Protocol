@@ -28,7 +28,7 @@ type AuthflowLike = {
 
 const MAX_RETRIES = 5;
 const PING_INTERVAL_MS = 2000;
-const PING_TIMEOUT_MS = 7000;
+const PING_TIMEOUT_MS = 60000;
 const CREDENTIALS_TIMEOUT_MS = 15000;
 
 export class NethernetSignal extends EventEmitter {
@@ -300,7 +300,7 @@ function parseTurnServers(dataString: string): IceServerConfig[] {
 }
 
 function parseIceUrl(url: string): { hostname: string; port: number; relayType?: IceServerConfig["relayType"]; isTurn: boolean; } | null {
-    const match = url.trim().match(/^(?<scheme>stuns?|turns?)(?::\/\/)?(?<host>[^:?\s]+)(?::(?<port>\d+))?(?:\?(?<query>.*))?$/i);
+    const match = url.trim().match(/^(?<scheme>stuns?|turns?)(?::\/\/|:)?(?<host>[^:?\s]+)(?::(?<port>\d+))?(?:\?(?<query>.*))?$/i);
     if (!match || !match.groups) {
         return null;
     }

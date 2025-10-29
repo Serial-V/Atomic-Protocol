@@ -6,6 +6,12 @@ import { keyExchange } from "../handshake/keyExchange";
 import login from "../handshake/login";
 import loginVerify from "../handshake/loginVerify";
 import { NethernetClient } from "../nethernet";
+import type { InputFlag } from "../packets/InputFlag";
+import type { ClientMovementPredictionSyncPacket } from "../packets/packet_client_movement_prediction_sync";
+import type { MovePlayerPacket } from "../packets/packet_move_player";
+import type { NetworkStackLatencyPacket } from "../packets/packet_network_stack_latency";
+import type { StartGamePacket } from "../packets/packet_start_game";
+import type { TickSyncPacket } from "../packets/packet_tick_sync";
 import { RaknetClient } from "../rak";
 import { createDeserializer, createSerializer } from "../transforms/serializer";
 import { ClientOptions, clientStatus } from "../types";
@@ -38,6 +44,10 @@ export class Client extends Connection {
     private reconnectAttempts = 0;
     private manualDisconnect = false;
     private autoReconnect: boolean;
+    private authInputInterval: NodeJS.Timeout | null = null;
+    private currentPosition: { x: number; y: number; z: number; } | null = null;
+    private currentRotation: { pitch: number; yaw: number; headYaw: number; } | null = null;
+    private selfRuntimeId: number | null = null;
 
     override on<K extends keyof Events>(event: K, listener: Events[K]): this {
         return super.on(event, listener);
@@ -59,6 +69,12 @@ export class Client extends Connection {
         if (this.options.transport === "nethernet") {
             this.nethernet = {};
         }
+
+        this.on('tick_sync', this.handleTickSyncPacket);
+        this.on('network_stack_latency', this.handleNetworkStackLatencyPacket);
+        this.on('start_game', this.handleStartGamePacket);
+        this.on('move_player', this.handleMovePlayerPacket);
+        this.on('client_movement_prediction_sync', this.handleClientMovementPredictionSyncPacket);
 
         if (!options.delayedInit) {
             this.init();
@@ -98,6 +114,7 @@ export class Client extends Connection {
             this.manualDisconnect = true;
             this.autoReconnect = false;
         }
+        this.stopAuthInputLoop();
         this.clearReconnectTimer();
         if (this.status !== clientStatus.Disconnected) this.emit('close');
         clearInterval(this.loop);
@@ -111,6 +128,11 @@ export class Client extends Connection {
     public init() {
         this.manualDisconnect = false;
         this.clearReconnectTimer();
+        this.stopAuthInputLoop();
+        this.currentPosition = null;
+        this.currentRotation = null;
+        this.selfRuntimeId = null;
+        this.tick = 0n;
         if (this.options.autoReconnect !== undefined) {
             this.autoReconnect = this.options.autoReconnect;
         } else if (this.options.transport === "nethernet") {
@@ -279,6 +301,7 @@ export class Client extends Connection {
             this.setStatus(clientStatus.Initialized);
             if (this.entityId) this.on('start_game', () => this.write('set_local_player_as_initialized', { runtime_entity_id: this.entityId }));
             else this.write('set_local_player_as_initialized', { runtime_entity_id: this.entityId });
+            this.startAuthInputLoop();
         };
     };
 
@@ -305,4 +328,137 @@ export class Client extends Connection {
         }
     }
 
+    private handleTickSyncPacket = (packet: TickSyncPacket) => {
+        this.queue('tick_sync', {
+            request_time: packet.request_time,
+            response_time: Date.now()
+        });
+    };
+
+    private handleNetworkStackLatencyPacket = (packet: NetworkStackLatencyPacket) => {
+        if (packet.needs_response) {
+            this.queue('network_stack_latency', {
+                timestamp: packet.timestamp,
+                needs_response: 0
+            });
+        }
+    };
+
+    private handleStartGamePacket = (packet: StartGamePacket) => {
+        this.selfRuntimeId = this.extractRuntimeId(packet.runtime_entity_id);
+        this.currentPosition = {
+            x: packet.player_position.x,
+            y: packet.player_position.y,
+            z: packet.player_position.z
+        };
+        this.currentRotation = {
+            pitch: packet.rotation.x,
+            yaw: (packet.rotation as any).y,
+            headYaw: (packet.rotation as any).y
+        };
+        if (typeof packet.current_tick === "number") {
+            this.tick = BigInt(packet.current_tick);
+        } else {
+            this.tick = 0n;
+        }
+    };
+
+    private handleMovePlayerPacket = (packet: MovePlayerPacket) => {
+        if (this.selfRuntimeId === null) return;
+        const runtimeId = this.extractRuntimeId((packet as any).runtime_id ?? (packet as any).runtime_entity_id);
+        if (runtimeId === null || runtimeId !== this.selfRuntimeId) return;
+        this.currentPosition = {
+            x: packet.position.x,
+            y: packet.position.y,
+            z: packet.position.z
+        };
+        this.currentRotation = {
+            pitch: packet.pitch,
+            yaw: packet.yaw,
+            headYaw: packet.head_yaw
+        };
+        if ((packet as any).mode === 'teleport') {
+            this.sendPlayerState({ handled_teleport: true });
+        }
+    };
+
+    private handleClientMovementPredictionSyncPacket = (packet: ClientMovementPredictionSyncPacket) => {
+        const runtime = this.extractRuntimeId((packet as any).entity_runtime_id);
+        if (runtime !== null) {
+            this.selfRuntimeId = runtime;
+        }
+        this.sendPlayerState({ received_server_data: true });
+    };
+
+    private extractRuntimeId(value: any): number | null {
+        if (value === undefined || value === null) return null;
+        if (typeof value === "number") return value;
+        if (typeof value === "bigint") return Number(value);
+        if (typeof value === "object") {
+            if (typeof value.low === "number" && typeof value.high === "number") {
+                return Number((BigInt(value.high >>> 0) << 32n) | BigInt(value.low >>> 0));
+            }
+            if ("value" in value) {
+                return this.extractRuntimeId((value as any).value);
+            }
+        }
+        const numeric = Number(value);
+        return Number.isNaN(numeric) ? null : numeric;
+    }
+
+    private startAuthInputLoop() {
+        if (this.authInputInterval) return;
+        this.authInputInterval = setInterval(() => this.sendIdlePlayerInput(), 100);
+    }
+
+    private stopAuthInputLoop() {
+        if (this.authInputInterval) {
+            clearInterval(this.authInputInterval);
+            this.authInputInterval = null;
+        }
+    }
+
+    private sendIdlePlayerInput() {
+        this.sendPlayerState();
+    }
+
+    private sendPlayerState(flags: Partial<InputFlag> = {}) {
+        if (this.status !== clientStatus.Initialized) return;
+        if (!this.currentPosition || !this.currentRotation) return;
+
+        const tickValue = this.tick;
+        this.tick += 1n;
+
+        const yaw = this.currentRotation.yaw ?? 0;
+        const pitch = this.currentRotation.pitch ?? 0;
+        const headYaw = this.currentRotation.headYaw ?? yaw;
+
+        const zeroVec2 = { x: 0, y: 0 };
+        const zeroVec3 = { x: 0, y: 0, z: 0 };
+
+        this.queue('player_auth_input', {
+            pitch,
+            yaw,
+            position: { ...this.currentPosition },
+            move_vector: zeroVec2,
+            head_yaw: headYaw,
+            input_data: { ...config.inputFlags, ...flags },
+            input_mode: 'mouse',
+            play_mode: 'normal',
+            interaction_model: 'classic',
+            interact_rotation: { x: pitch, y: yaw },
+            tick: tickValue,
+            delta: zeroVec3,
+            analogue_move_vector: zeroVec2,
+            camera_orientation: { x: pitch, y: yaw, z: 0 },
+            raw_move_vector: zeroVec2
+        });
+
+        this.queue('player_input', {
+            motion_x: 0,
+            motion_z: 0,
+            jumping: Boolean(flags.start_jumping || flags.jump_pressed_raw || flags.jump_current_raw),
+            sneaking: Boolean(flags.sneaking || flags.sneak_current_raw)
+        });
+    }
 };

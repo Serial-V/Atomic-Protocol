@@ -1,4 +1,5 @@
 import assert from "assert";
+import { SignalType } from "node-nethernet";
 import { realmAuth } from "./client/auth";
 import { Client } from "./client/client";
 import { config } from "./config/config";
@@ -58,12 +59,44 @@ async function connect(client: Client) {
             //@ts-ignore
             await client.nethernet.signalling.connect();
 
-            //@ts-ignore
-            client.connection.nethernet.credentials = client.nethernet.signalling.credentials;
+            const updateCredentials = (creds: any[]) => {
+                if (!Array.isArray(creds) || creds.length === 0) {
+                    if (config.debug) {
+                        console.log("<DEBUG>".gray + " Ignoring empty TURN credentials update");
+                    }
+                    return;
+                }
+                //@ts-ignore
+                client.connection.nethernet.credentials = creds;
+                if (config.debug) {
+                    //@ts-ignore
+                    console.log("<DEBUG>".gray + " Updated TURN credentials", JSON.stringify(client.connection.nethernet.credentials, null, 2));
+                }
+            };
+
+            updateCredentials(client.nethernet.signalling.credentials);
+
             //@ts-ignore
             client.connection.nethernet.signalHandler = client.nethernet.signalling.write.bind(client.nethernet.signalling);
             //@ts-ignore
-            client.nethernet.signalling.on('signal', signal => client.connection.nethernet.handleSignal(signal));
+            client.nethernet.signalling.removeAllListeners('signal');
+            //@ts-ignore
+            client.nethernet.signalling.on('signal', signal => {
+                if (signal.type === SignalType.ConnectRequest) {
+                    //@ts-ignore
+                    client.connection.nethernet.handleRemoteOffer(signal);
+                } else {
+                    //@ts-ignore
+                    client.connection.nethernet.handleSignal(signal);
+                }
+            });
+
+            //@ts-ignore
+            client.nethernet.signalling.removeAllListeners('credentials');
+            //@ts-ignore
+            client.nethernet.signalling.on('credentials', (creds: any[]) => {
+                updateCredentials(creds);
+            });
         } else {
             await client.connection.ping();
         }
