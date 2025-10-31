@@ -1,9 +1,8 @@
 import { v4 } from "uuid-1345";
 import { XboxRTA } from "xbox-rta";
 import { config } from "../config/config";
+import { Logger } from "../utils/logger";
 import { isXuid, Joinability, JoinabilityConfig, Rest } from "./rest";
-
-
 
 export class Host {
     public session: any;
@@ -11,7 +10,7 @@ export class Host {
     public rest: Rest;
     public subscriptionId: string;
     public profile: any;
-    public rta: XboxRTA | null;
+    public rta: any;
     public connectionId: any;
 
     constructor(session: any, authflow: any) {
@@ -33,14 +32,14 @@ export class Host {
         const subResponse: any = await this.rta.subscribe('https://sessiondirectory.xboxlive.com/connections/');
 
         this.connectionId = subResponse.data.ConnectionId;
-        this.rta.on('subscribe', (event) => this.onSubscribe(event));
+        this.rta.on('subscribe', (event: any) => this.onSubscribe(event));
     }
 
     async onSubscribe(event: any) {
         const connectionId = event.data?.ConnectionId;
 
         if (connectionId && typeof connectionId === 'string') {
-            if (config.debug) console.log("<DEBUG>".gray + 'Received RTA subscribe event', event);
+        Logger.debug(`Received RTA subscribe event ${JSON.stringify(event)}`, config.debug);
 
             try {
                 this.connectionId = connectionId;
@@ -48,7 +47,7 @@ export class Host {
                 await this.rest.updateConnection(this.session.session.name, connectionId);
                 await this.rest.setActivity(this.session.session.name);
             } catch (e) {
-                if (config.debug) console.log("<DEBUG>".gray + 'Failed to update connection, session may have been abandoned', e);
+            Logger.debug(`Failed to update connection, session may have been abandoned: ${String(e)}`, config.debug);
                 await this.session.end(true);
             }
         }
@@ -104,10 +103,10 @@ export class SessionDirectory {
         }
 
         await this.host.rest.leaveSession(this.session.name).catch(() => {
-            if (config.debug) console.log("<DEBUG>".gray + `Failed to leave session ${this.session.name}`);
+            Logger.debug(`Failed to leave session ${this.session.name}`, config.debug);
         });
 
-        if (config.debug) console.log("<DEBUG>".gray + `Abandoned session, name: ${this.session.name} - Resume: ${resume}`);
+            Logger.debug(`Abandoned session, name: ${this.session.name} - Resume: ${resume}`, config.debug);
 
         if (resume) {
             //@ts-ignore
@@ -116,7 +115,7 @@ export class SessionDirectory {
     }
 
     async invitePlayer(identifier: string) {
-        if (config.debug) console.log("<DEBUG>".gray + `Inviting player, identifier: ${identifier}`);
+        Logger.debug(`Inviting player, identifier: ${identifier}`, config.debug);
 
         if (!isXuid(identifier)) {
             const profile = await this.host.rest.getProfile(identifier)
@@ -126,7 +125,7 @@ export class SessionDirectory {
 
         await this.host.rest.sendInvite(this.session.name, identifier);
 
-        if (config.debug) console.log("<DEBUG>".gray + `Invited player, xuid: ${identifier}`);
+        Logger.debug(`Invited player, xuid: ${identifier}`, config.debug);
     }
 
     async updateMemberCount(count: number, maxCount: number) {
@@ -144,7 +143,7 @@ export class SessionDirectory {
     async createAndPublishSession() {
         await this.updateSession(this.createSessionBody());
 
-        if (config.debug) console.log("<DEBUG>".gray + `Created session, name: ${this.session.name}`);
+        Logger.debug(`Created session, name: ${this.session.name}`, config.debug);
 
         await this.host.rest.setActivity(this.session.name);
 
@@ -152,7 +151,7 @@ export class SessionDirectory {
 
         await this.updateSession({ properties: session.properties });
 
-        if (config.debug) console.log("<DEBUG>".gray + `Published session, name: ${this.session.name}`);
+        Logger.debug(`Published session, name: ${this.session.name}`, config.debug);
 
         return session;
     }

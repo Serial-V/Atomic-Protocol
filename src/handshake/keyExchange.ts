@@ -1,6 +1,7 @@
 import "colors";
 import * as crypto from "crypto";
 import { config } from "../config/config";
+import { Logger } from "../utils/logger";
 import { clientStatus } from "../types";
 
 const curve = 'secp384r1';
@@ -14,7 +15,7 @@ export const keyExchange = (client: any) => {
     client.clientX509 = client.publicKeyDER.toString('base64');
 
     function startServerboundEncryption(token: { token: string; }) {
-        if (config.debug) console.log("<DEBUG>".gray + "- ENCRYPT - Starting Serverbound Encryption ", token);
+    Logger.debug("- ENCRYPT - Starting Serverbound Encryption", config.debug);
 
         const jwt = token?.token;
         if (!jwt) throw Error('Server did not return a valid JWT, cannot start encryption');

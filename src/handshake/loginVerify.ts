@@ -1,6 +1,7 @@
 import * as crypto from "crypto";
 import { JwtPayload, verify } from "jsonwebtoken";
 import { config } from "../config/config";
+import { Logger } from "../utils/logger";
 import { PUBLIC_KEY } from "../types";
 
 export = (client: any) => {
@@ -34,7 +35,7 @@ export = (client: any) => {
             const x5u = getX5U(token);
             if (x5u === PUBLIC_KEY && !data.extraData?.XUID) {
                 didVerify = true;
-                if (config.debug) console.log("<DEBUG>".gray + "Verified Client With Mojang Key: ", x5u);
+    Logger.debug(`Verified Client With Mojang Key: ${x5u}`, config.debug);
             }
 
             pubKey = decoded.identityPublicKey ? getDER(decoded.identityPublicKey) : x5u;

@@ -1,5 +1,7 @@
 import { config } from "../config/config";
 import { ClientOptions } from "../types";
+import { Errors } from "../utils/errors";
+import { Logger } from "../utils/logger";
 import { Client } from "./client";
 
 export enum AuthenticationType {
@@ -15,7 +17,7 @@ export const realmAuth = async (options: ClientOptions) => {
             await OptIn(options);
 
             const getAddress = async (realmId: number) => {
-                if (options.debug) console.log(`[Atomic] > Fetching ${realmId}'s Address`);
+                Logger.debug(`Fetching realm: ${realmId}'s address`, options.debug);
 
                 const fetchResponse = await fetch(config.endpoints.address(realmId), {
                     method: "GET",
@@ -25,10 +27,7 @@ export const realmAuth = async (options: ClientOptions) => {
                     }
                 });
 
-                if (!fetchResponse.ok) {
-                    reject({ error: `[Error] Unable to fetch Realm Address; ${fetchResponse.status} ${fetchResponse.statusText}` });
-                    return null;
-                }
+                if (!fetchResponse.ok)  throw Errors.noRealm(fetchResponse.status, fetchResponse.statusText);
 
                 const json = await fetchResponse.json();
 
@@ -49,10 +48,7 @@ export const realmAuth = async (options: ClientOptions) => {
                     }
                 });
 
-                if (!fetchResponse.ok) {
-                    reject({ error: `[Invite] Couldn't compelete the request; ${fetchResponse.status} ${fetchResponse.statusText}` });
-                    if (options.debug) console.log(`[Atomic Protocol] > Accept Invite Error: ${await fetchResponse.text()}`);
-                }
+                if (!fetchResponse.ok) throw Errors.inviteFailed();
             }
 
             const address = await getAddress(options.realmId!);
@@ -60,7 +56,7 @@ export const realmAuth = async (options: ClientOptions) => {
 
             if (address?.host && address?.port) {
                 const { host, port } = address;
-                if (!host || !port) reject({ error: 'Couldn\'t find a Realm to connect to. Invalid Host/Port' });
+                if (!host || !port) throw Errors.noRealm(404, "Not found");
 
                 options.host = host;
                 options.port = Number(port);
@@ -98,7 +94,7 @@ export const authenticate = async (client: Client, options: ClientOptions) => {
         const xboxProfile = JSON.parse(String(payload));
 
         const profile: Profile = {
-            name: xboxProfile?.extraData?.displayName || 'Reclipsed Client',
+            name: xboxProfile?.extraData?.displayName || 'Atomic Client',
             uuid: xboxProfile?.extraData?.identity || "dfcf5ca-206c-404a-aec4-f59fff264c9b",
             xuid: xboxProfile?.extraData?.XUID || 0
         };

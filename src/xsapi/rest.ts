@@ -1,4 +1,5 @@
 import { config } from "../config/config";
+import { Logger } from "../utils/logger";
 
 export const SessionConfig = {
     MinecraftTitleID: '896928775',
@@ -192,7 +193,7 @@ async function checkStatus(res: Response) {
         return res.text().then(JSON.parse);
     } else {
         const resp = await res.text();
-        if (config.debug) console.log("<DEBUG>".gray + 'Request fail', resp);
+        Logger.debug(`Request fail ${JSON.stringify(resp)}`, config.debug);
         throw Error(`${res.status} ${res.statusText} ${resp}`);
     }
 }

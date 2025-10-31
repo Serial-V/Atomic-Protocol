@@ -15,8 +15,10 @@ import type { TickSyncPacket } from "../packets/packet_tick_sync";
 import { RaknetClient } from "../rak";
 import { createDeserializer, createSerializer } from "../transforms/serializer";
 import { ClientOptions, clientStatus } from "../types";
+import { Logger } from "../utils/logger";
 import { authenticate, AuthenticationType } from "./auth";
 import { Connection } from "./connection";
+import { Errors } from "../utils/errors";
 
 export class Client extends Connection {
     connection!: RaknetClient | NethernetClient;
@@ -81,9 +83,8 @@ export class Client extends Connection {
         };
     };
 
-    // Exhaustive Logging
     public setStatus(value: number) {
-        if (this.options.debug) console.log(`[Atomic] > Status Update: ${this.status} -> ${value}`);
+        Logger.debug(`Status Update: ${this.status} -> ${value}`, this.options.debug);
         this.status = value;
     }
 
@@ -138,7 +139,7 @@ export class Client extends Connection {
         } else if (this.options.transport === "nethernet") {
             this.autoReconnect = true;
         }
-        if (this.options.protocolVersion !== config.protocol) throw Error(`Unsupported protocol version: ${this.options.protocolVersion}`);
+        if (this.options.protocolVersion !== config.protocol) throw Errors.invalidProtocol(this.options.protocolVersion)
         this.serializer = createSerializer();
         this.deserializer = createDeserializer();
 
@@ -243,14 +244,14 @@ export class Client extends Connection {
             this.queue('request_network_settings', { client_protocol: Number(config.protocol) });
         };
         this.connection.onCloseConnection = (reason: any) => {
-            if (this.status === clientStatus.Disconnected && config.debug) console.log(`Server closed connection: ${reason}`);
+            Logger.debug(`Server closed connection: ${reason}`, this.status === clientStatus.Disconnected && config.debug);
             const wasManual = this.manualDisconnect;
             this.close(wasManual);
-            if (!wasManual && this.autoReconnect) {
-                const delay = Math.min(30000, 2000 * Math.max(1, ++this.reconnectAttempts));
-                if (config.debug) console.log(`<DEBUG> Scheduling Nethernet reconnect in ${delay}ms`);
-                this.scheduleReconnect(delay);
-            }
+            // if (!wasManual && this.autoReconnect) {
+            //     const delay = Math.min(30000, 2000 * Math.max(1, ++this.reconnectAttempts));
+            //     Logger.debug(`Scheduling Nethernet reconnect in ${delay}ms`);
+            //     this.scheduleReconnect(delay);
+            // }
         };
 
         this.connection.onEncapsulated = this.onEncapsulated;
@@ -311,7 +312,7 @@ export class Client extends Connection {
             this.reconnectTimer = null;
             if (this.manualDisconnect) return;
             try {
-                if (config.debug) console.log(`<DEBUG> Attempting Nethernet reconnect (attempt ${this.reconnectAttempts})`);
+                Logger.debug(`Attempting Nethernet reconnect (attempt ${this.reconnectAttempts})`, config.debug);
                 this.init();
             } catch (err) {
                 this.emit('error', err as Error);

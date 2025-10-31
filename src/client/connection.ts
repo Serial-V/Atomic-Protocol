@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { Logger } from "../utils/logger";
 import { config } from '../config/config';
 import { NethernetClient } from '../nethernet';
 import { RaknetClient } from '../rak';
@@ -51,7 +52,7 @@ export class Connection extends EventEmitter {
         if (this.disableEncryption) return;
         this.encryptionEnabled = true;
         //@ts-ignore
-        if (config.debug) console.log(`<DEBUG> Started Encryption`, this.sharedSecret, iv);
+        Logger.debug(`Started Encryption ${JSON.stringify({ iv: Array.from(iv || []), shared: !!this.sharedSecret })}`, config.debug);
         this.decrypt = createDecryptor(this, iv);
         this.encrypt = createEncryptor(this, iv);
     };

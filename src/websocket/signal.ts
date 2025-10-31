@@ -2,6 +2,7 @@ import { SignalStructure } from "node-nethernet";
 import { EventEmitter, once } from "node:events";
 import { RawData, WebSocket } from "ws";
 import { config } from "../config/config";
+import { Logger } from "../utils/logger";
 
 const MessageType = {
     RequestPing: 0,
@@ -36,7 +37,7 @@ export class NethernetSignal extends EventEmitter {
     public authflow: AuthflowLike;
     public version: string;
     public ws: WebSocket | null = null;
-    public credentials: IceServerConfig[] = [];
+    public credentials: any[] = [];
 
     private pingInterval: NodeJS.Timeout | null = null;
     private retryCount = 0;
@@ -64,7 +65,7 @@ export class NethernetSignal extends EventEmitter {
     }
 
     async destroy(resume = false) {
-        if (config.debug) console.log("<DEBUG>".gray + 'Disconnecting from Signal');
+        Logger.debug('Disconnecting from Signal', config.debug)
 
         this.destroyed = !resume;
 
@@ -103,7 +104,7 @@ export class NethernetSignal extends EventEmitter {
 
     private async reconnectWithBackoff() {
         if (this.retryCount >= MAX_RETRIES) {
-            if (config.debug) console.log("<DEBUG>".gray + "Max retries reached for Signal");
+            Logger.debug("Max retries reached for Signal", config.debug)
             this.emit("error", new Error("Signal reconnection failed after max retries"));
             return;
         }
@@ -111,24 +112,23 @@ export class NethernetSignal extends EventEmitter {
         const base = 500;
         const delay = Math.min(1000 * 10, base * 2 ** this.retryCount);
         const jitter = Math.floor(Math.random() * 200);
-        if (config.debug)
-            console.log("<DEBUG>".gray + `Signal reconnect attempt #${this.retryCount + 1} in ${delay + jitter}ms`);
+        Logger.debug(`Signal reconnect attempt #${this.retryCount + 1} in ${delay + jitter}ms`, config.debug)
 
         await new Promise((r) => setTimeout(r, delay + jitter));
 
         try {
             await this.init();
         } catch (e) {
-            if (config.debug) console.log("<DEBUG>".gray + "Signal init failed on reconnect", e);
+            Logger.debug(`Signal init failed on reconnect: ${String(e)}`, config.debug)
         }
     }
 
     async init() {
         const xbl = await this.authflow.getMinecraftBedrockServicesToken({ version: this.version });
-        if (config.debug) console.log("<DEBUG>".gray + 'Fetched XBL Token', xbl);
+        Logger.debug('Fetched XBL Token', config.debug)
 
         const address = `wss://signal.franchise.minecraft-services.net/ws/v1.0/signaling/${this.networkId}`;
-        if (config.debug) console.log("<DEBUG>".gray + 'Connecting to Signal', address);
+        Logger.debug(`Connecting to Signal ${address}`, config.debug)
 
         const ws = new WebSocket(address, { headers: { Authorization: xbl.mcToken } });
         this.ws = ws;
@@ -148,7 +148,7 @@ export class NethernetSignal extends EventEmitter {
                 } catch { }
 
                 if (Date.now() - this.lastLiveness > PING_TIMEOUT_MS) {
-                    if (config.debug) console.log("<DEBUG>".gray + "Signal liveness timeout; forcing reconnect");
+                    Logger.debug("Signal liveness timeout; forcing reconnect", config.debug)
                     try {
                         this.ws.terminate?.();
                     } catch { }
@@ -159,16 +159,16 @@ export class NethernetSignal extends EventEmitter {
 
     private onOpen() {
         this.retryCount = 0;
-        if (config.debug) console.log("<DEBUG>".gray + "Connected to Signal");
+        Logger.debug("Connected to Signal", config.debug)
         this.lastLiveness = Date.now();
     }
 
     private onError(err: any) {
-        if (config.debug) console.log("<DEBUG>".gray + "Signal Error", err);
+        Logger.debug(`Signal Error: ${JSON.stringify(err, null, 2)}`, config.debug)
     }
 
     private async onClose(code: number, reason: string) {
-        if (config.debug) console.log("<DEBUG>".gray + `Signal Disconnected code=${code} reason=${reason}`);
+        Logger.debug(`Signal Disconnected code=${code} reason=${reason}`, config.debug)
 
         if (this.ws === null && this.pingInterval) {
             clearInterval(this.pingInterval);
@@ -200,28 +200,27 @@ export class NethernetSignal extends EventEmitter {
             try {
                 message = JSON.parse(res) as MessageEnvelope;
             } catch (e) {
-                if (config.debug) console.log("<DEBUG>".gray + "Failed to parse message", e);
+                Logger.debug(`Failed to parse message: ${String(e)}`, config.debug)
                 return;
             }
         } else if (res instanceof Buffer) {
             try {
                 message = JSON.parse(res.toString("utf8")) as MessageEnvelope;
             } catch (e) {
-                if (config.debug) console.log("<DEBUG>".gray + "Failed to parse binary message", e);
+                Logger.debug(`Failed to parse binary message: ${String(e)}`, config.debug)
                 return;
             }
         } else {
-            if (config.debug) console.log("<DEBUG>".gray + "Received non-text message", typeof res);
+            Logger.debug(`Received non-text message ${typeof res}`, config.debug)
             return;
         }
 
-        if (config.debug) console.log("<DEBUG>".gray + "Received message", message);
+        Logger.debug(`Received message ${JSON.stringify(message)}`, config.debug)
 
         switch (message.Type) {
             case MessageType.Credentials: {
                 if ((message as any).From !== "Server") {
-                    if (config.debug)
-                        console.log("<DEBUG>".gray + "Ignoring credentials from non-Server", message);
+                    Logger.debug(`Ignoring credentials from non-Server ${JSON.stringify(message)}`, config.debug)
                     return;
                 }
                 this.credentials = parseTurnServers((message as any).Message);
@@ -235,7 +234,7 @@ export class NethernetSignal extends EventEmitter {
                     signal.networkId = m.From;
                     this.emit("signal", signal);
                 } catch (e) {
-                    if (config.debug) console.log("<DEBUG>".gray + "Failed to parse Signal", e);
+                    Logger.debug(`Failed to parse Signal: ${String(e)}`, config.debug)
                 }
                 break;
             }
@@ -259,16 +258,16 @@ export class NethernetSignal extends EventEmitter {
             Message: signal.toString()
         });
 
-        if (config.debug) console.log("<DEBUG>".gray + "Sending Signal", message);
+        Logger.debug(`Sending Signal ${message}`, config.debug)
         this.ws.send(message);
     }
 }
 
-function parseTurnServers(dataString: string): IceServerConfig[] {
-    const servers: IceServerConfig[] = [];
+function parseTurnServers(dataString: string): any[] {
+    const iceServers: any[] = [];
     try {
         const data = JSON.parse(dataString);
-        if (config.debug) console.log("<DEBUG>".gray + "Parsed Turn Servers", data);
+        Logger.debug("Parsed Turn Servers payload", config.debug)
 
         const list = Array.isArray(data?.TurnAuthServers) ? data.TurnAuthServers : [];
         for (const server of list) {
@@ -279,24 +278,36 @@ function parseTurnServers(dataString: string): IceServerConfig[] {
                 const parsed = parseIceUrl(rawUrl);
                 if (!parsed) continue;
 
-                const entry: IceServerConfig = {
+                const base: any = {
                     hostname: parsed.hostname,
                     port: parsed.port
                 };
 
                 if (parsed.isTurn) {
-                    entry.username = server?.Username || undefined;
-                    entry.password = server?.Password || server?.Credential || undefined;
-                    entry.relayType = parsed.relayType;
+                    base.username = server?.Username || undefined;
+                    base.password = server?.Password || server?.Credential || undefined;
+                    base.relayType = parsed.relayType;
                 }
 
-                servers.push(entry);
+                iceServers.push(base);
+
+                // Add conservative fallbacks: try TCP and TLS variants as well
+                if (parsed.isTurn) {
+                    // Prefer also trying TCP on same port if original was UDP
+                    if (parsed.relayType === "TurnUdp") {
+                        iceServers.push({ ...base, relayType: "TurnTcp" });
+                    }
+                    // Also try TLS on 5349 if not already provided
+                    if (parsed.relayType !== "TurnTls") {
+                        iceServers.push({ ...base, port: 5349, relayType: "TurnTls" });
+                    }
+                }
             }
         }
     } catch (e) {
-        if (config.debug) console.log("<DEBUG>".gray + "Failed to parse TURN servers", e);
+        Logger.debug(`Failed to parse TURN servers: ${String(e)}`, config.debug)
     }
-    return servers;
+    return iceServers;
 }
 
 function parseIceUrl(url: string): { hostname: string; port: number; relayType?: IceServerConfig["relayType"]; isTurn: boolean; } | null {

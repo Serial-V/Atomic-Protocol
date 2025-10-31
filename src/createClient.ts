@@ -9,6 +9,7 @@ import { ClientOptions } from "./types";
 import { convert } from "./utils/convert";
 import { sleep } from "./utils/utilities";
 import { NethernetSignal } from "./websocket/signal";
+import { Logger } from "./utils/logger";
 
 export const createClient = (options: ClientOptions) => {
     assert(options);
@@ -27,13 +28,13 @@ export const createClient = (options: ClientOptions) => {
                 if (client.options.transport === "nethernet") return client.init();
 
                 if (ad.portV4 && client.options.followPort) client.options.port = ad.portV4;
-                if (config.debug) console.log(`Connecting to ${client.options.host}:${client.options.port} ${ad.motd} (${ad.levelName}), version ${ad.version} ${config.minecraftVersion}`);
+                Logger.debug(`Connecting to ${client.options.host}:${client.options.port} ${ad.motd} (${ad.levelName}), version ${ad.version} ${config.minecraftVersion}` , config.debug);
                 client.init();
             }).catch((e) => {
                 if (!client.options.useSignalling) {
                     client.emit("error", e);
                 } else {
-                    if (config.debug) console.log(`Could not ping server through local signalling, trying to connect over franchise signally instead`);
+                    Logger.debug("Could not ping server through local signalling, trying to connect over franchise signally instead", config.debug)
                     client.init();
                 }
             });
@@ -61,17 +62,13 @@ async function connect(client: Client) {
 
             const updateCredentials = (creds: any[]) => {
                 if (!Array.isArray(creds) || creds.length === 0) {
-                    if (config.debug) {
-                        console.log("<DEBUG>".gray + " Ignoring empty TURN credentials update");
-                    }
+                    Logger.debug("Ignoring empty TURN credentials update", config.debug)
                     return;
                 }
                 //@ts-ignore
                 client.connection.nethernet.credentials = creds;
-                if (config.debug) {
-                    //@ts-ignore
-                    console.log("<DEBUG>".gray + " Updated TURN credentials", JSON.stringify(client.connection.nethernet.credentials, null, 2));
-                }
+                //@ts-ignore
+                Logger.debug(`Updated TURN credentials: ${JSON.stringify(client.connection.nethernet.credentials, null, 2)}`, config.debug)
             };
 
             updateCredentials(client.nethernet.signalling.credentials);
